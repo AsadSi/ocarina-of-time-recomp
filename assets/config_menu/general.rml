@@ -6,8 +6,8 @@
             <div class="config__hz-wrapper" id="conf-general__hz-wrapper">
                 <!-- Options -->
                 <div class="config__wrapper" data-event-mouseout="set_cur_config_index(-1)" id="conf-general__wrapper">
-                    <!-- Targeting mode, gyro and mouse aiming, autosave and camera inversion only work through Majora's Mask
-                         patches. They return here as their Ocarina of Time patches are written. -->
+                    <!-- Targeting mode, gyro and mouse aiming and camera inversion only work through Majora's Mask patches.
+                         They return here as their Ocarina of Time patches are written. -->
                     <!-- rumble strength -->
                     <div class="config-option" data-event-mouseover="set_cur_config_index(1)">
                         <label class="config-option__title">Rumble Strength</label>
@@ -58,7 +58,7 @@
                                 data-checked="background_input_mode"
                                 value="On"
                                 id="bg_input_enabled"
-                                style="nav-up: #joystick_deadzone_input; nav-down: #analog_cam_enabled"
+                                style="nav-up: #joystick_deadzone_input; nav-down: #autosave_enabled"
                             />
                             <label class="config-option__tab-label" for="bg_input_enabled">On</label>
 
@@ -70,9 +70,39 @@
                                 data-checked="background_input_mode"
                                 value="Off"
                                 id="bg_input_disabled"
-                                style="nav-up: #joystick_deadzone_input; nav-down: #analog_cam_disabled"
+                                style="nav-up: #joystick_deadzone_input; nav-down: #autosave_disabled"
                             />
                             <label class="config-option__tab-label" for="bg_input_disabled">Off</label>
+                        </div>
+                    </div>
+
+                    <!-- autosave -->
+                    <div class="config-option" data-event-mouseover="set_cur_config_index(6)">
+                        <label class="config-option__title">Autosaving</label>
+                        <div class="config-option__list">
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(6)"
+                                name="autosave_mode"
+                                data-checked="autosave_mode"
+                                value="On"
+                                id="autosave_enabled"
+                                style="nav-up: #bg_input_enabled; nav-down: #analog_cam_enabled"
+                            />
+                            <label class="config-option__tab-label" for="autosave_enabled">On</label>
+
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(6)"
+                                name="autosave_mode"
+                                data-checked="autosave_mode"
+                                value="Off"
+                                id="autosave_disabled"
+                                style="nav-up: #bg_input_disabled; nav-down: #analog_cam_disabled"
+                            />
+                            <label class="config-option__tab-label" for="autosave_disabled">Off</label>
                         </div>
                     </div>
 
@@ -88,7 +118,7 @@
                                 data-checked="analog_cam_mode"
                                 value="On"
                                 id="analog_cam_enabled"
-                                style="nav-up: #bg_input_enabled; nav-down: #analog_camera_inversion_none"
+                                style="nav-up: #autosave_enabled; nav-down: #analog_camera_inversion_none"
                             />
                             <label class="config-option__tab-label" for="analog_cam_enabled">On</label>
 
@@ -100,7 +130,7 @@
                                 data-checked="analog_cam_mode"
                                 value="Off"
                                 id="analog_cam_disabled"
-                                style="nav-up: #bg_input_disabled; nav-down: #analog_camera_inversion_x"
+                                style="nav-up: #autosave_disabled; nav-down: #analog_camera_inversion_x"
                             />
                             <label class="config-option__tab-label" for="analog_cam_disabled">Off</label>
                         </div>
@@ -189,13 +219,10 @@
                         <b>This setting does not affect keyboard input.</b>
                     </p>
                     <p data-if="cur_config_index == 6">
-                        Turns on autosaving and prevents owl saves from being deleted on load. Autosaves act as owl saves and take up the same slot as they do.
+                        Saves your game every two minutes during regular play, to the file you're playing, just like saving from the pause menu.
                         <br/>
                         <br/>
-                        Loading an autosave will place you in Clock Town or at the entrance of the current dungeon if you were in one.
-                        <br/>
-                        <br/>
-                        <b>If autosaving is disabled, existing autosaves will be deleted when loaded.</b>
+                        As with any save, loading it starts you at Link's house, the Temple of Time or the entrance of the dungeon you were in.
                     </p>
                     <p data-if="cur_config_index == 7">
                         Inverts the camera controls for first-person aiming. <b>Invert Y</b> is the default and matches the original game.

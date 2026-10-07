@@ -39,10 +39,27 @@
 #define gEXMatrixGroupDecomposedSkipAll(cmd, id, push, proj, edit) \
     gEXMatrixGroupDecomposedTC(cmd, id, push, proj, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP)
 
+// Embeds a binary file (path relative to the patches directory) as a read-only array.
+#define INCBIN(identifier, filename)          \
+    asm(".pushsection .rodata\n"              \
+        "\t.local " #identifier "\n"          \
+        "\t.type " #identifier ", @object\n"  \
+        "\t.balign 8\n"                       \
+        #identifier ":\n"                     \
+        "\t.incbin \"" filename "\"\n\n"      \
+        "\t.balign 8\n"                       \
+        "\t.popsection\n");                   \
+    extern u8 identifier[]
+
 // camera_tagging.c
 int camera_was_skipped(void);
 void clear_camera_skipped(void);
 struct GameState;
 void camera_post_game_update(struct GameState* gameState);
+
+// autosave.c
+struct PlayState;
+void autosave_post_play_update(struct PlayState* play);
+void autosave_draw_icon(struct PlayState* play);
 
 #endif
