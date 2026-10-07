@@ -85,12 +85,14 @@ std::atomic_bool input_script_quit_requested = false;
 // Development aid: when RECOMP_INPUT_SCRIPT names a file, controller 1 plays it instead of live input.
 // Each line is "<seconds> [button...] [X=<-1..1>] [Y=<-1..1>]": from that many seconds after the first
 // poll, hold exactly those buttons and that stick position until the next line. '#' starts a comment.
+// RX= and RY= set the right stick; GX=/GY= and MX=/MY= feed gyro and mouse deltas on every poll.
 // A line containing QUIT quits the game the way confirming the window's close prompt does.
 namespace {
     struct ScriptStep {
         double time;
         uint16_t buttons;
         float x, y;
+        float extra[6]; // Right stick X/Y, gyro X/Y, mouse X/Y.
         bool quit;
     };
 
@@ -118,6 +120,16 @@ namespace {
                 else if (word.starts_with("Y=")) {
                     step.y = std::stof(word.substr(2));
                 }
+                else if (size_t eq = word.find('='); eq != std::string::npos) {
+                    static const std::array<std::string, 6> extras = { "RX", "RY", "GX", "GY", "MX", "MY" };
+                    auto it = std::find(extras.begin(), extras.end(), word.substr(0, eq));
+                    if (it == extras.end()) {
+                        fprintf(stderr, "Input script: unknown axis \"%s\"\n", word.c_str());
+                    }
+                    else {
+                        step.extra[it - extras.begin()] = std::stof(word.substr(eq + 1));
+                    }
+                }
                 else if (word == "QUIT") {
                     step.quit = true;
                 }
@@ -133,22 +145,32 @@ namespace {
         return steps;
     }
 
-    bool get_scripted_input(uint16_t* buttons_out, float* x_out, float* y_out) {
+    const ScriptStep* current_script_step() {
         static const char* path = getenv("RECOMP_INPUT_SCRIPT");
         if (path == nullptr) {
-            return false;
+            return nullptr;
         }
         static const std::vector<ScriptStep> steps = load_input_script(path);
         static const auto start = std::chrono::steady_clock::now();
+        static const ScriptStep idle{};
         const double now = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
 
-        ScriptStep current{};
+        const ScriptStep* current = &idle;
         for (const ScriptStep& step : steps) {
             if (step.time > now) {
                 break;
             }
-            current = step;
+            current = &step;
         }
+        return current;
+    }
+
+    bool get_scripted_input(uint16_t* buttons_out, float* x_out, float* y_out) {
+        const ScriptStep* step = current_script_step();
+        if (step == nullptr) {
+            return false;
+        }
+        const ScriptStep& current = *step;
         if (current.quit) {
             input_script_quit_requested = true;
         }
@@ -157,6 +179,16 @@ namespace {
         *y_out = current.y;
         return true;
     }
+}
+
+// The scripted right stick, gyro and mouse values, if an input script is running.
+bool recomp::get_scripted_extra_axes(float out[6]) {
+    const ScriptStep* step = current_script_step();
+    if (step == nullptr) {
+        return false;
+    }
+    std::copy(std::begin(step->extra), std::end(step->extra), out);
+    return true;
 }
 
 bool recomp::get_n64_input(int controller_num, uint16_t* buttons_out, float* x_out, float* y_out) {

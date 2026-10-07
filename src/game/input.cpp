@@ -678,6 +678,10 @@ bool recomp::get_input_digital(const std::span<const recomp::InputField> fields)
 
 void recomp::get_gyro_deltas(float* x, float* y) {
     std::array<float, 2> cur_rotation_delta = InputState.rotation_delta;
+    float scripted[6];
+    if (recomp::get_scripted_extra_axes(scripted)) {
+        cur_rotation_delta = { scripted[2], scripted[3] };
+    }
     float sensitivity = (float)recomp::get_gyro_sensitivity() / 100.0f;
     *x = cur_rotation_delta[0] * sensitivity;
     *y = cur_rotation_delta[1] * sensitivity;
@@ -685,6 +689,10 @@ void recomp::get_gyro_deltas(float* x, float* y) {
 
 void recomp::get_mouse_deltas(float* x, float* y) {
     std::array<float, 2> cur_mouse_delta = InputState.mouse_delta;
+    float scripted[6];
+    if (recomp::get_scripted_extra_axes(scripted)) {
+        cur_mouse_delta = { scripted[4], scripted[5] };
+    }
     float sensitivity = (float)recomp::get_mouse_sensitivity() / 100.0f;
     *x = cur_mouse_delta[0] * sensitivity;
     *y = cur_mouse_delta[1] * sensitivity;
@@ -726,6 +734,12 @@ void recomp::apply_joystick_deadzone(float x_in, float y_in, float* x_out, float
 }
 
 void recomp::get_right_analog(float* x, float* y) {
+    float scripted[6];
+    if (recomp::get_scripted_extra_axes(scripted)) {
+        *x = scripted[0];
+        *y = scripted[1];
+        return;
+    }
     float x_val =
         controller_axis_state((SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX + 1), false) -
         controller_axis_state(-(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX + 1), false);

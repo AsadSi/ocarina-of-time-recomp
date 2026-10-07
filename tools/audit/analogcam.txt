@@ -1,0 +1,13 @@
+# Map select entry 1 (Hyrule Field), child. Turn the camera with the right stick, then walk forward.
+0
+4 A
+4.3
+13
+14 RX=1
+17
+18 RY=-1
+19.5
+20 Y=1
+23
+24 RX=-1 RY=1
+26

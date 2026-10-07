@@ -161,6 +161,7 @@ namespace recomp {
     void set_input_binding(GameInput input, size_t binding_index, InputDevice device, InputField value);
 
     bool get_n64_input(int controller_num, uint16_t* buttons_out, float* x_out, float* y_out);
+    bool get_scripted_extra_axes(float out[6]);
     void set_rumble(int controller_num, bool);
     void update_rumble();
     void handle_events();

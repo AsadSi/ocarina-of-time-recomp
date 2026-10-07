@@ -1,0 +1,30 @@
+# Hyrule Field as adult: pause, D-Up on Deku Sticks (child only: refused), right to Deku Nuts, D-Up assigns;
+# right twice to the Bow, D-Right assigns; unpause, D-Right draws the bow, B puts it away, D-Up throws a nut.
+0
+4 B
+4.2
+5 A
+5.3
+14 START
+14.2
+17 DU
+17.2
+18 X=1
+18.15
+19 DU
+19.2
+20 X=1
+20.15
+21 X=1
+21.15
+22 DR
+22.2
+24 START
+24.2
+28 DR
+28.2
+31 B
+31.2
+33 DU
+33.2
+36

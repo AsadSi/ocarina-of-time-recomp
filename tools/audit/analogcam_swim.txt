@@ -1,0 +1,15 @@
+# Hyrule Field (child): turn camera toward the castle, run off the bridge side into the moat, turn camera while swimming.
+0
+4 A
+4.3
+14 RX=1
+17
+18 RY=-1
+18.6
+20 Y=1 X=0.5
+26 Y=1
+29
+30 RX=1
+32
+33 RX=-1
+35
