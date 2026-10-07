@@ -64,23 +64,9 @@ constexpr uint32_t byteswap(uint32_t val) {
 }
 #endif
 
-// Produces a decompressed MM rom. This is only needed because the game has compressed code.
-// For other recomps using this repo as an example, you can omit the decompression routine and
-// set the corresponding fields in the GameEntry if the game doesn't have compressed code,
-// even if it does have compressed data.
-std::vector<uint8_t> zelda64::decompress_mm(std::span<const uint8_t> compressed_rom) {
-    // Sanity check the rom size and header. These should already be correct from the runtime's check,
-    // but it should prevent this file from accidentally being copied to another recomp.
-    if (compressed_rom.size() != 0x2000000) {
-        assert(false);
-        return {};
-    }
-
-    if (compressed_rom[0x3B] != 'N' || compressed_rom[0x3C] != 'Z' || compressed_rom[0x3D] != 'S' || compressed_rom[0x3E] != 'E') {
-        assert(false);
-        return {};
-    }
-
+// Decompresses every file listed in a Zelda 64 dmadata table into a ROM laid out by vrom address.
+// Both MM and OoT store their compressed files this way.
+static std::vector<uint8_t> decompress_zelda64(std::span<const uint8_t> compressed_rom, size_t dma_data_rom_addr, size_t decompressed_size) {
     struct DmaDataEntry {
         uint32_t vrom_start;
         uint32_t vrom_end;
@@ -98,10 +84,8 @@ std::vector<uint8_t> zelda64::decompress_mm(std::span<const uint8_t> compressed_
     DmaDataEntry cur_entry{};
     size_t cur_entry_index = 0;
 
-    constexpr size_t dma_data_rom_addr = 0x1A500;
-
     std::vector<uint8_t> ret{};
-    ret.resize(0x2F00000);
+    ret.resize(decompressed_size);
 
     size_t content_end = 0;
 
@@ -165,4 +149,31 @@ std::vector<uint8_t> zelda64::decompress_mm(std::span<const uint8_t> compressed_
     std::fill(ret.begin() + content_end, ret.end(), 0xFF);
 
     return ret;
+}
+
+static bool check_compressed_rom(std::span<const uint8_t> compressed_rom, const char game_code[4]) {
+    return compressed_rom.size() == 0x2000000 && memcmp(compressed_rom.data() + 0x3B, game_code, 4) == 0;
+}
+
+// Produces a decompressed MM rom. This is only needed because the game has compressed code.
+// For other recomps using this repo as an example, you can omit the decompression routine and
+// set the corresponding fields in the GameEntry if the game doesn't have compressed code,
+// even if it does have compressed data.
+std::vector<uint8_t> zelda64::decompress_mm(std::span<const uint8_t> compressed_rom) {
+    // Sanity check the rom size and header. These should already be correct from the runtime's check,
+    // but it should prevent this file from accidentally being copied to another recomp.
+    if (!check_compressed_rom(compressed_rom, "NZSE")) {
+        assert(false);
+        return {};
+    }
+    return decompress_zelda64(compressed_rom, 0x1A500, 0x2F00000);
+}
+
+// Produces a decompressed OoT PAL 1.1 rom, matching the decomp's baserom-decompressed.z64.
+std::vector<uint8_t> zelda64::decompress_oot(std::span<const uint8_t> compressed_rom) {
+    if (!check_compressed_rom(compressed_rom, "NZLP")) {
+        assert(false);
+        return {};
+    }
+    return decompress_zelda64(compressed_rom, 0x7950, 0x34D5000);
 }

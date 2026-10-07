@@ -64,6 +64,8 @@ target_compile_definitions(rmlui_core PRIVATE LUNASVG_BUILD_STATIC)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/N64ModernRuntime)
 
 target_include_directories(rt64 PRIVATE ${CMAKE_BINARY_DIR}/rt64/src)
+# hlsl++ calls labs without including <cstdlib>, which newer libc++ no longer includes transitively.
+target_compile_options(rt64 PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-include cstdlib>)
 
 # RecompiledFuncs - Library containing the primary recompiler output
 add_library(RecompiledFuncs STATIC)
@@ -95,6 +97,7 @@ target_compile_options(PatchesLib PRIVATE
     -fno-strict-aliasing
     -Wno-unused-variable
     -Wno-implicit-function-declaration
+    -include ${CMAKE_SOURCE_DIR}/include/patches_strong_funcs.h
 )
 
 target_include_directories(PatchesLib PRIVATE
@@ -164,6 +167,7 @@ set (SOURCES
     ${CMAKE_SOURCE_DIR}/src/game/recomp_actor_api.cpp
     ${CMAKE_SOURCE_DIR}/src/game/recomp_data_api.cpp
     ${CMAKE_SOURCE_DIR}/src/game/rom_decompression.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/n64dd_stubs.cpp
 
     ${CMAKE_SOURCE_DIR}/src/ui/ui_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/ui_state.cpp
@@ -340,7 +344,8 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 target_link_libraries(Zelda64Recompiled PRIVATE
-    PatchesLib
+    # Load every patch even when the weak originals already satisfy all references.
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,PatchesLib>"
     RecompiledFuncs
     librecomp
     ultramodern

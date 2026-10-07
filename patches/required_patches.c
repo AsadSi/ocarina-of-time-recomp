@@ -1,92 +1,61 @@
 #include "patches.h"
 #include "misc_funcs.h"
-#include "transform_ids.h"
-#include "loadfragment.h"
-#include "libc/math.h"
 
-void Main_ClearMemory(void* begin, void* end);
-void Main_InitMemory(void);
-void Main_InitScreen(void);
+void DmaMgr_Init(void);
+s32 DmaMgr_RequestSync(void* ram, uintptr_t vrom, size_t size);
+void Main(void* arg);
 
+DECLARE_SEGMENT(code)
 
-RECOMP_DECLARE_EVENT(recomp_on_init());
+// @recomp Patched to tell the runtime that the code segment is being loaded, so it can map the
+// recompiled functions for it. Original: Main_ThreadEntry in src/boot/idle.c, minus its logging.
+RECOMP_PATCH void Main_ThreadEntry(void* arg) {
+    DmaMgr_Init();
 
-// @recomp Patched to load the code segment in the recomp runtime.
-RECOMP_PATCH void Main_Init(void) {
-    DmaRequest dmaReq;
-    OSMesgQueue mq;
-    OSMesg msg[1];
-    size_t prevSize;
+    // @recomp Register the code segment before copying it in.
+    recomp_load_overlays((u32)(uintptr_t)_codeSegmentRomStart, _codeSegmentStart, _codeSegmentRomEnd - _codeSegmentRomStart);
 
-    // @recomp Register base actor extensions.
-    register_base_actor_extensions();
-
-    // @recomp_event recomp_on_init(): Allow mods to initialize themselves once.
-    recomp_on_init();
-
-    osCreateMesgQueue(&mq, msg, ARRAY_COUNT(msg));
-
-    prevSize = gDmaMgrDmaBuffSize;
-    gDmaMgrDmaBuffSize = 0;
-
-    // @recomp Load the code segment in the recomp runtime.
-    recomp_load_overlays(SEGMENT_ROM_START(code), SEGMENT_START(code), SEGMENT_ROM_END(code) - SEGMENT_ROM_START(code));
-
-    DmaMgr_SendRequestImpl(&dmaReq, SEGMENT_START(code), SEGMENT_ROM_START(code),
-                           SEGMENT_ROM_END(code) - SEGMENT_ROM_START(code), 0, &mq, NULL);
-    Main_InitScreen();
-    Main_InitMemory();
-    osRecvMesg(&mq, NULL, OS_MESG_BLOCK);
-
-    gDmaMgrDmaBuffSize = prevSize;
-
-    Main_ClearMemory(SEGMENT_BSS_START(code), SEGMENT_BSS_END(code));
-    
-    // @recomp Patch a float that's used to render the clock into the correct value.
-    // This is done this way instead of patching the function to avoid conflicts with mods that need to patch the function.
-    // The original code is `Matrix_RotateZF(-(timeInSeconds * 0.0175f) / 10.0f, MTXMODE_APPLY);`, where 0.0175f is being used
-    // to convert degrees to radians. However, the correct value is PI/180 which is approximately 0.0174533f, and the difference is enough
-    // to cause the clock to overshoot when reaching an hour mark.
-    *(f32*)0x801DDBBC = ((f32)M_PI) / 180.0f;
+    DmaMgr_RequestSync(_codeSegmentStart, (uintptr_t)_codeSegmentRomStart, _codeSegmentRomEnd - _codeSegmentRomStart);
+    bzero(_codeSegmentBssStart, _codeSegmentBssEnd - _codeSegmentBssStart);
+    Main(arg);
 }
 
-void Overlay_Relocate(void* allocatedRamAddr, OverlayRelocationSection* ovlRelocs, uintptr_t vramStart);
-
-// @recomp Patched to load the overlay in the recomp runtime.
-RECOMP_PATCH size_t Overlay_Load(uintptr_t vromStart, uintptr_t vromEnd, void* ramStart, void* ramEnd, void* allocatedRamAddr) {
-    uintptr_t vramStart = (uintptr_t)ramStart;
-    uintptr_t vramEnd = (uintptr_t)ramEnd;
+// @recomp Patched to tell the runtime where each overlay is being loaded. Every actor, effect,
+// game state, pause menu and player overlay goes through here.
+// Original: Overlay_Load in src/libu64/loadfragment2_n64.c, minus its logging.
+RECOMP_PATCH size_t Overlay_Load(uintptr_t vromStart, uintptr_t vromEnd, void* vramStart, void* vramEnd, void* allocatedRamAddr) {
     s32 size = vromEnd - vromStart;
-    uintptr_t end;
+    uintptr_t end = (uintptr_t)allocatedRamAddr + size;
     OverlayRelocationSection* ovlRelocs;
-    
-    // @recomp Load the overlay in the recomp runtime.
-    recomp_load_overlays(vromStart, allocatedRamAddr, vromEnd - vromStart);
 
-    if (gOverlayLogSeverity >= 3) {}
-    if (gOverlayLogSeverity >= 3) {}
+    // @recomp Register the overlay before copying it in.
+    recomp_load_overlays(vromStart, allocatedRamAddr, size);
 
-    end = (uintptr_t)allocatedRamAddr + size;
-    DmaMgr_SendRequest0(allocatedRamAddr, vromStart, size);
+    DmaMgr_RequestSync(allocatedRamAddr, vromStart, size);
 
+    // The overlay file ends with a 32-bit offset from its end back to the relocation section.
     ovlRelocs = (OverlayRelocationSection*)(end - ((s32*)end)[-1]);
-
-    if (gOverlayLogSeverity >= 3) {}
-    if (gOverlayLogSeverity >= 3) {}
-
     Overlay_Relocate(allocatedRamAddr, ovlRelocs, vramStart);
 
-    if (ovlRelocs->bssSize != 0) {
-        if (gOverlayLogSeverity >= 3) {}
-        bzero((void*)end, ovlRelocs->bssSize);
+    if ((s32)ovlRelocs->bssSize != 0) {
+        bzero((void*)end, (s32)ovlRelocs->bssSize);
     }
 
-    size = vramEnd - vramStart;
+    size = (uintptr_t)vramEnd - (uintptr_t)vramStart;
 
     osWritebackDCache(allocatedRamAddr, size);
     osInvalICache(allocatedRamAddr, size);
 
-    if (gOverlayLogSeverity >= 3) {}
-
     return size;
+}
+
+extern vu8 D_80121210;
+extern vu8 D_80121211;
+
+// @recomp Patched to report that no 64DD is attached without loading the 64DD library and probing
+// the drive's registers, which do not exist here. Main then picks the normal cartridge heap layout.
+// Original: func_800AD410 in src/code/code_n64dd_800AD410.c.
+RECOMP_PATCH void func_800AD410(void) {
+    D_80121210 = true;
+    D_80121211 = false;
 }

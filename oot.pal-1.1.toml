@@ -1,0 +1,36 @@
+# Config file for the Ocarina of Time PAL 1.1 (Europe Rev 1) recompilation.
+# The ELF and uncompressed ROM come from the zeldaret/oot decomp built with VERSION=pal-1.1,
+# which matches the retail ROM byte for byte.
+
+[input]
+entrypoint = 0x80000400
+# Paths are relative to the location of this config file.
+output_func_path = "RecompiledFuncs"
+relocatable_sections_path = "overlays.pal-1.1.txt"
+# A copy of the decomp's ELF with "..makerom.ent" renamed to "..makerom_ent", since the section name
+# becomes a C identifier in the output:
+#   (only the section-name string is edited, in place; every other byte matches the decomp ELF)
+elf_path = "oot.pal-1.1.elf"
+rom_file_path = "../oot/build/pal-1.1/oot-pal-1.1.z64"
+
+# Hand-written assembly whose ELF symbol size runs on over the data table that follows the code.
+function_sizes = [
+    { name = "KanjiTex_CodepointToOffset", size = 0x98 },
+]
+
+[patches]
+stubs = [
+    # 64DD disk drive library: never used on a cartridge, and its stack use trips the analyzer.
+    "LeoGetAAdr",
+    "LeoGetKAdr",
+    # Write RCP status registers directly. Main calls RcpUtils_Reset on every boot.
+    "RcpUtils_Reset",
+    "RcpUtils_PrintRegisterStatus",
+    # Read the CIC chip's boot values from addresses that only exist on a real console.
+    "CIC6105_SaveBootMagicValues",
+    # Anti-piracy check: runs the rspboot task and reads the result out of RSP DMEM.
+    # Its results only feed a debug screen.
+    "CIC6105_RunBootTask",
+    # Probes the 64DD drive's hardware registers during boot.
+    "osDriveRomInit",
+]

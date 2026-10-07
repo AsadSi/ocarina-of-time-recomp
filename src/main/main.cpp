@@ -45,7 +45,6 @@
 #include "../../patches/sound.h"
 #include "../../patches/misc_funcs.h"
 
-#include "mods/mm_recomp_dpad_builtin.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -350,13 +349,13 @@ gpr get_entrypoint_address();
 // array of supported GameEntry objects
 std::vector<recomp::GameEntry> supported_games = {
     {
-        .rom_hash = 0xEF18B4A9E2386169ULL,
-        .internal_name = "ZELDA MAJORA'S MASK",
-        .game_id = u8"mm.n64.us.1.0",
-        .mod_game_id = "mm",
-        .save_type = recomp::SaveType::Flashram,
+        .rom_hash = 0x852608AC912F1081ULL,
+        .internal_name = "THE LEGEND OF ZELDA",
+        .game_id = u8"oot.n64.eu.1.1",
+        .mod_game_id = "oot",
+        .save_type = recomp::SaveType::Sram,
         .is_enabled = false,
-        .decompression_routine = zelda64::decompress_mm,
+        .decompression_routine = zelda64::decompress_oot,
         .has_compressed_code = true,
         .entrypoint_address = get_entrypoint_address(),
         .entrypoint = recomp_entrypoint,
@@ -569,8 +568,6 @@ void reorder_texture_pack(recomp::mods::ModContext&) {
 #define REGISTER_FUNC(name) recomp::overlays::register_base_export(#name, name)
 
 int main(int argc, char** argv) {
-    (void)argc;
-    (void)argv;
     recomp::Version project_version{};
     if (!recomp::Version::from_string(version_string, project_version)) {
         ultramodern::error_handling::message_box(("Invalid version string: " + version_string).c_str());
@@ -655,7 +652,6 @@ int main(int argc, char** argv) {
         recomp::register_game(game);
     }
 
-    recomp::mods::register_embedded_mod("mm_recomp_dpad_builtin", { (const uint8_t*)(mm_recomp_dpad_builtin), std::size(mm_recomp_dpad_builtin)});
 
     REGISTER_FUNC(recomp_get_window_resolution);
     REGISTER_FUNC(recomp_get_target_aspect_ratio);
@@ -730,6 +726,16 @@ int main(int argc, char** argv) {
 
     // Register the .rtz texture pack file format with the previous content type as its only allowed content type.
     recomp::mods::register_mod_container_type("rtz", std::vector{ texture_pack_content_type_id }, false);
+
+    // --start skips the launcher and boots the game straight away; --map-select boots into map select.
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--start") == 0) {
+            recompui::request_autostart(false);
+        }
+        else if (strcmp(argv[i], "--map-select") == 0) {
+            recompui::request_autostart(true);
+        }
+    }
 
     recomp::start(
         project_version,

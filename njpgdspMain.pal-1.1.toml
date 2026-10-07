@@ -1,0 +1,7 @@
+# The JPEG decoding microcode, read from OoT PAL 1.1 (used for pre-rendered backgrounds).
+text_offset = 0xB5C470
+text_size = 0xAF0
+text_address = 0x04001080
+rom_file_path = "../oot/build/pal-1.1/oot-pal-1.1.z64"
+output_file_path = "rsp/njpgdspMain.cpp"
+output_function_name = "njpgdspMain"

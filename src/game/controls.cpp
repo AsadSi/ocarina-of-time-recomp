@@ -1,3 +1,7 @@
+#include <fstream>
+#include <sstream>
+#include <unordered_map>
+#include <chrono>
 #include <array>
 
 #include "librecomp/helpers.hpp"
@@ -75,7 +79,80 @@ void recomp::set_input_binding(recomp::GameInput input, size_t binding_index, re
     }
 }
 
+// Development aid: when RECOMP_INPUT_SCRIPT names a file, controller 1 plays it instead of live input.
+// Each line is "<seconds> [button...] [X=<-1..1>] [Y=<-1..1>]": from that many seconds after the first
+// poll, hold exactly those buttons and that stick position until the next line. '#' starts a comment.
+namespace {
+    struct ScriptStep {
+        double time;
+        uint16_t buttons;
+        float x, y;
+    };
+
+    std::vector<ScriptStep> load_input_script(const char* path) {
+        static const std::unordered_map<std::string, uint16_t> names = {
+            {"A", 0x8000}, {"B", 0x4000}, {"Z", 0x2000}, {"START", 0x1000},
+            {"DU", 0x0800}, {"DD", 0x0400}, {"DL", 0x0200}, {"DR", 0x0100},
+            {"L", 0x0020}, {"R", 0x0010}, {"CU", 0x0008}, {"CD", 0x0004}, {"CL", 0x0002}, {"CR", 0x0001},
+        };
+        std::vector<ScriptStep> steps;
+        std::ifstream file{ path };
+        std::string line;
+        while (std::getline(file, line)) {
+            line = line.substr(0, line.find('#'));
+            std::istringstream words{ line };
+            ScriptStep step{};
+            if (!(words >> step.time)) {
+                continue;
+            }
+            std::string word;
+            while (words >> word) {
+                if (word.starts_with("X=")) {
+                    step.x = std::stof(word.substr(2));
+                }
+                else if (word.starts_with("Y=")) {
+                    step.y = std::stof(word.substr(2));
+                }
+                else if (auto it = names.find(word); it != names.end()) {
+                    step.buttons |= it->second;
+                }
+                else {
+                    fprintf(stderr, "Input script: unknown button \"%s\"\n", word.c_str());
+                }
+            }
+            steps.push_back(step);
+        }
+        return steps;
+    }
+
+    bool get_scripted_input(uint16_t* buttons_out, float* x_out, float* y_out) {
+        static const char* path = getenv("RECOMP_INPUT_SCRIPT");
+        if (path == nullptr) {
+            return false;
+        }
+        static const std::vector<ScriptStep> steps = load_input_script(path);
+        static const auto start = std::chrono::steady_clock::now();
+        const double now = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+
+        ScriptStep current{};
+        for (const ScriptStep& step : steps) {
+            if (step.time > now) {
+                break;
+            }
+            current = step;
+        }
+        *buttons_out = current.buttons;
+        *x_out = current.x;
+        *y_out = current.y;
+        return true;
+    }
+}
+
 bool recomp::get_n64_input(int controller_num, uint16_t* buttons_out, float* x_out, float* y_out) {
+    if (controller_num == 0 && get_scripted_input(buttons_out, x_out, y_out)) {
+        return true;
+    }
+
     uint16_t cur_buttons = 0;
     float cur_x = 0.0f;
     float cur_y = 0.0f;

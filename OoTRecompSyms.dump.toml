@@ -1,0 +1,10 @@
+# Only used for `N64Recomp OoTRecompSyms.dump.toml --dump-context`, which writes the symbol tables
+# the patch build links against. Run it from OoTRecompSyms/.
+[input]
+entrypoint = 0x80000400
+output_func_path = "RecompiledFuncs"
+relocatable_sections_path = "overlays.pal-1.1.txt"
+elf_path = "oot.pal-1.1.elf"
+function_sizes = [
+    { name = "KanjiTex_CodepointToOffset", size = 0x98 },
+]

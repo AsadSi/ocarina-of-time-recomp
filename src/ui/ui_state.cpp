@@ -558,7 +558,7 @@ void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* s
     }
 
     // Return to the launcher if no menu is open and the game isn't started.
-    if (!recompui::is_any_context_shown() && !ultramodern::is_game_started()) {
+    if (!recompui::is_any_context_shown() && !ultramodern::is_game_started() && !recompui::try_autostart()) {
         recompui::show_context(recompui::get_launcher_context_id(), "");
     }
 

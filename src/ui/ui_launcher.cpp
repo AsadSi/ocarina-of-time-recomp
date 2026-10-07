@@ -2,6 +2,7 @@
 #include "zelda_config.h"
 #include "zelda_support.h"
 #include "librecomp/game.hpp"
+#include "librecomp/helpers.hpp"
 #include "ultramodern/ultramodern.hpp"
 #include "RmlUi/Core.h"
 #include "nfd.h"
@@ -49,6 +50,27 @@ void select_rom() {
 }
 
 recompui::ContextId launcher_context;
+static bool autostart_requested = false;
+static bool start_map_select = false;
+
+void recompui::request_autostart(bool map_select) {
+    autostart_requested = true;
+    start_map_select = map_select;
+}
+
+// Called by the Setup_InitImpl patch to choose between the intro and the developer map select.
+extern "C" void recomp_get_start_map_select(uint8_t* rdram, recomp_context* ctx) {
+    _return(ctx, static_cast<s32>(start_map_select));
+}
+
+bool recompui::try_autostart() {
+    if (!autostart_requested || !recomp::is_rom_valid(supported_games[0].game_id)) {
+        return false;
+    }
+    autostart_requested = false;
+    recomp::start_game(supported_games[0].game_id);
+    return true;
+}
 
 recompui::ContextId recompui::get_launcher_context_id() {
 	return launcher_context;
@@ -79,6 +101,14 @@ public:
         );
         recompui::register_event(listener, "start_game",
             [](const std::string& param, Rml::Event& event) {
+                start_map_select = false;
+                recomp::start_game(supported_games[0].game_id);
+                recompui::hide_all_contexts();
+            }
+        );
+        recompui::register_event(listener, "start_map_select",
+            [](const std::string& param, Rml::Event& event) {
+                start_map_select = true;
                 recomp::start_game(supported_games[0].game_id);
                 recompui::hide_all_contexts();
             }

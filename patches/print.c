@@ -1,11 +1,13 @@
 #include "patches.h"
 #include "misc_funcs.h"
+#include "ultra64/xstdio.h"
 
-void* proutPrintf(void* dst, const char* fmt, size_t size) {
+static void* proutPrintf(void* dst, const char* fmt, size_t size) {
     recomp_puts(fmt, size);
     return (void*)1;
 }
 
+// printf for mods, routed to the host's stdout.
 RECOMP_EXPORT int recomp_printf(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);

@@ -1,0 +1,13 @@
+# The audio microcode, read from OoT PAL 1.1. This build is 0xFB0 bytes, unlike MM's 0x1000, so its
+# jump table differs: these are the 24 halfwords at DMEM 0x10 of its own data (aspMainDataStart).
+text_offset = 0xB58870
+text_size = 0xFB0
+text_address = 0x04001000
+rom_file_path = "../oot/build/pal-1.1/oot-pal-1.1.z64"
+output_file_path = "rsp/aspMain.cpp"
+output_function_name = "aspMain"
+extra_indirect_branch_targets = [
+    0x1F68, 0x1230, 0x114C, 0x1F18, 0x1E2C, 0x14F4, 0x1E9C, 0x1CB0,
+    0x117C, 0x17CC, 0x11E8, 0x1AA4, 0x1B34, 0x1190, 0x1C5C, 0x1220,
+    0x1784, 0x1830, 0x1A20, 0x1884, 0x1A84, 0x1A94, 0x1A48, 0x1BA0
+]
