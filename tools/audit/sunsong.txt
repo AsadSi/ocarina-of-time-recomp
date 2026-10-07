@@ -1,0 +1,27 @@
+# Map select: Hyrule Field (child, day). Play the Sun's Song (C-right C-down C-up, twice) to turn day
+# into night, then walk out into the field: moon, night sky, Stalchildren.
+0
+4 A
+4.3
+14 CR
+14.2
+16 CR
+16.2
+16.6 CD
+16.8
+17.2 CU
+17.4
+17.8 CR
+18.0
+18.4 CD
+18.6
+19.0 CU
+19.2
+40 Y=1
+48 X=1 Y=1
+52 Y=1
+56 B
+56.2
+57 B
+57.2
+60

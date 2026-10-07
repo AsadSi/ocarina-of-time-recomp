@@ -1,0 +1,29 @@
+# Map select: L (entry 20) then D-up = entry 19, Lon Lon Ranch (child, day). Walk in, take out the
+# ocarina (C-right) and play Epona's Song (C-up C-left C-right, twice).
+0
+4 L
+4.2
+5.0 DU
+5.2
+6.0 A
+6.3
+15 Y=1
+21
+22 CR
+22.2
+24 CU
+24.2
+24.6 CL
+24.8
+25.2 CR
+25.4
+25.8 CU
+26.0
+26.4 CL
+26.6
+27.0 CR
+27.2
+33 A
+33.2
+35 A
+35.2

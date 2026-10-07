@@ -1,0 +1,40 @@
+# Map select: L x4 (entry 60) then D-down x8 = entry 68, Dodongo's Cavern (child). Walk in, swing the sword.
+0
+4 L
+4.2
+4.8 L
+5.0
+5.6 L
+5.8
+6.4 L
+6.6
+7.2 DD
+7.4
+7.9 DD
+8.1
+8.6 DD
+8.8
+9.3 DD
+9.5
+10.0 DD
+10.2
+10.7 DD
+10.9
+11.4 DD
+11.6
+12.1 DD
+12.3
+12.9 A
+13.2
+22 Y=1
+25 X=1 Y=1
+27 X=1
+28.5 Y=1
+31
+32 B
+32.2
+33 B
+33.2
+34 Z
+36 X=-1 Y=1
+39

@@ -1,7 +1,8 @@
 import sys, glob, os
 from PIL import Image, ImageDraw
 d = sys.argv[1]
-files = sorted(glob.glob(os.path.join(d, 't*.png')), key=lambda f: int(os.path.basename(f)[1:-4]))
+files = sorted((f for f in glob.glob(os.path.join(d, 't*.png')) if '_' not in os.path.basename(f)),
+               key=lambda f: float(os.path.basename(f)[1:-4]))
 ims = [Image.open(f) for f in files]
 w, h = 480, 280
 cols = 3
