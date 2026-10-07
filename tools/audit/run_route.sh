@@ -13,7 +13,7 @@ PID=$!; START=$(date +%s)
 for T in "$@"; do
   while (( $(date +%s) - START < T )); do sleep 0.2; done
   kill -0 $PID 2>/dev/null || { echo "EXITED before ${T}s"; break; }
-  W=$(swift -e "import CoreGraphics; let l = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as! [[String: Any]]; for w in l where (w[\"kCGWindowOwnerPID\"] as? Int ?? 0) == $PID && (w[\"kCGWindowName\"] as? String ?? \"\") == \"Zelda 64: Recompiled\" { print(w[\"kCGWindowNumber\"]!); break }")
+  W=$(swift -e "import CoreGraphics; let l = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as! [[String: Any]]; for w in l where (w[\"kCGWindowOwnerPID\"] as? Int ?? 0) == $PID && (w[\"kCGWindowName\"] as? String ?? \"\") == \"Ocarina of Time: Recompiled\" { print(w[\"kCGWindowNumber\"]!); break }")
   [ -n "$W" ] && screencapture -x -o -l "$W" "$OUT/t$T.png" && sips -Z 480 "$OUT/t$T.png" >/dev/null
 done
 while (( $(date +%s) - START < TOTAL )) && kill -0 $PID 2>/dev/null; do sleep 0.5; done

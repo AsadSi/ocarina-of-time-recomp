@@ -2,6 +2,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <chrono>
+#include <atomic>
 #include <array>
 
 #include "librecomp/helpers.hpp"
@@ -79,14 +80,18 @@ void recomp::set_input_binding(recomp::GameInput input, size_t binding_index, re
     }
 }
 
+std::atomic_bool input_script_quit_requested = false;
+
 // Development aid: when RECOMP_INPUT_SCRIPT names a file, controller 1 plays it instead of live input.
 // Each line is "<seconds> [button...] [X=<-1..1>] [Y=<-1..1>]": from that many seconds after the first
 // poll, hold exactly those buttons and that stick position until the next line. '#' starts a comment.
+// A line containing QUIT quits the game the way confirming the window's close prompt does.
 namespace {
     struct ScriptStep {
         double time;
         uint16_t buttons;
         float x, y;
+        bool quit;
     };
 
     std::vector<ScriptStep> load_input_script(const char* path) {
@@ -112,6 +117,9 @@ namespace {
                 }
                 else if (word.starts_with("Y=")) {
                     step.y = std::stof(word.substr(2));
+                }
+                else if (word == "QUIT") {
+                    step.quit = true;
                 }
                 else if (auto it = names.find(word); it != names.end()) {
                     step.buttons |= it->second;
@@ -140,6 +148,9 @@ namespace {
                 break;
             }
             current = step;
+        }
+        if (current.quit) {
+            input_script_quit_requested = true;
         }
         *buttons_out = current.buttons;
         *x_out = current.x;

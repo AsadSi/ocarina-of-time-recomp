@@ -298,7 +298,14 @@ bool sdl_event_filter(void* userdata, SDL_Event* event) {
     return false;
 }
 
+extern std::atomic_bool input_script_quit_requested;
+
 void recomp::handle_events() {
+    // A scripted QUIT quits from the main thread, as confirming the window's close prompt does.
+    if (input_script_quit_requested.exchange(false)) {
+        ultramodern::quit();
+    }
+
     SDL_Event cur_event;
     static bool started = false;
     static bool exited = false;

@@ -1,0 +1,19 @@
+# Open file 1, pause, save from the pause menu (B then A), then quit straight away.
+0
+13 START
+13.3
+18 START
+18.3
+27 A
+27.3
+29.5 A
+29.8
+38 START
+38.3
+43 B
+43.3
+45.5 A
+45.8
+48 A
+48.3
+50 QUIT

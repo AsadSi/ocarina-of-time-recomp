@@ -20,11 +20,24 @@
 #include "libu64/overlay.h"
 #include "rt64_extended_gbi.h"
 
+// RT64 added texcoord and lookat components to matrix groups; older versions take neither.
+#ifdef G_EX_MATRIX_FLOAT_V1
+#define gEXMatrixGroupSimpleTC(cmd, id, push, proj, pos, rot, persp, vert, tile, order, edit, tc, lookat) \
+    gEXMatrixGroupSimple(cmd, id, push, proj, pos, rot, persp, vert, tile, order, edit, tc, lookat)
+#define gEXMatrixGroupDecomposedTC(cmd, id, push, proj, pos, rot, scale, skew, persp, vert, tile, order, edit, tc, lookat) \
+    gEXMatrixGroupDecomposed(cmd, id, push, proj, pos, rot, scale, skew, persp, vert, tile, order, edit, tc, lookat)
+#else
+#define gEXMatrixGroupSimpleTC(cmd, id, push, proj, pos, rot, persp, vert, tile, order, edit, tc, lookat) \
+    gEXMatrixGroupSimple(cmd, id, push, proj, pos, rot, persp, vert, tile, order, edit)
+#define gEXMatrixGroupDecomposedTC(cmd, id, push, proj, pos, rot, scale, skew, persp, vert, tile, order, edit, tc, lookat) \
+    gEXMatrixGroupDecomposed(cmd, id, push, proj, pos, rot, scale, skew, persp, vert, tile, order, edit)
+#endif
+
 #define gEXMatrixGroupDecomposedNormal(cmd, id, push, proj, edit) \
-    gEXMatrixGroupDecomposed(cmd, id, push, proj, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit)
+    gEXMatrixGroupDecomposedTC(cmd, id, push, proj, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE)
 
 #define gEXMatrixGroupDecomposedSkipAll(cmd, id, push, proj, edit) \
-    gEXMatrixGroupDecomposed(cmd, id, push, proj, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit)
+    gEXMatrixGroupDecomposedTC(cmd, id, push, proj, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP)
 
 // camera_tagging.c
 int camera_was_skipped(void);

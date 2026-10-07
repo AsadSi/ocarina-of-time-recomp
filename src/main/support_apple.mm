@@ -66,3 +66,12 @@ static void PatchSDLMetalViewConstructor() {
     // This runs as soon as the dynamic library/executable is loaded, before main().
     MySwizzleSDLMetalView();
 }
+
+__attribute__((constructor))
+static void DisableWindowRestoration() {
+    // A game has no windows to restore. Without this, macOS shows a modal "reopen windows?" prompt on
+    // the launch after a crash or force quit, which blocks the main thread until it's answered.
+    @autoreleasepool {
+        [[NSUserDefaults standardUserDefaults] registerDefaults:@{ @"ApplePersistenceIgnoreState": @YES }];
+    }
+}
