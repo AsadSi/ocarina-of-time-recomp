@@ -1,0 +1,12 @@
+# Title screen -> file select -> new file on slot 1 -> name entry.
+0
+13 START
+13.3
+18 A
+18.3
+21 A
+21.3
+23 START
+23.3
+25 A
+25.3

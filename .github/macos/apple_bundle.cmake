@@ -4,8 +4,9 @@ set(ENTITLEMENTS_FILE ${CMAKE_SOURCE_DIR}/.github/macos/entitlements.plist)
 # Set bundle properties
 set_target_properties(Zelda64Recompiled PROPERTIES
         MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_BUNDLE_NAME "Zelda64Recompiled"
-        MACOSX_BUNDLE_GUI_IDENTIFIER "com.github.zelda64recompiled"
+        OUTPUT_NAME "OoTRecompiled"
+        MACOSX_BUNDLE_BUNDLE_NAME "Ocarina of Time: Recompiled"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.github.asadsi.ootrecompiled"
         MACOSX_BUNDLE_BUNDLE_VERSION "1.0"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
         MACOSX_BUNDLE_ICON_FILE "AppIcon.icns"
@@ -77,7 +78,7 @@ add_custom_command(TARGET Zelda64Recompiled POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/recompcontrollerdb.txt $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/Resources/
 
     # Set RPATH
-    COMMAND install_name_tool -add_rpath "@executable_path/../Frameworks/" $<TARGET_BUNDLE_DIR:Zelda64Recompiled>/Contents/MacOS/Zelda64Recompiled
+    COMMAND install_name_tool -add_rpath "@executable_path/../Frameworks/" $<TARGET_FILE:Zelda64Recompiled>
 
     # Sign the bundle
     COMMAND codesign --verbose=4 --options=runtime --no-strict --sign - --entitlements ${ENTITLEMENTS_FILE} --deep --force $<TARGET_BUNDLE_DIR:Zelda64Recompiled>

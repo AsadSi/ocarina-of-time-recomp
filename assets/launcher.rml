@@ -43,10 +43,6 @@
 							<div class="menu-list-item__bullet">•</div>
 							<div class="menu-list-item__label">Start game</div>
 						</button>
-						<button data-if="mm_rom_valid" onclick="start_map_select" class="menu-list-item menu-list-item--right">
-							<div class="menu-list-item__bullet">•</div>
-							<div class="menu-list-item__label">Map select</div>
-						</button>
 						<button onclick="open_controls" class="menu-list-item menu-list-item--right">
 							<div class="menu-list-item__bullet">•</div>
 							<div class="menu-list-item__label">Setup controls</div>

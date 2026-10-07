@@ -106,13 +106,6 @@ public:
                 recompui::hide_all_contexts();
             }
         );
-        recompui::register_event(listener, "start_map_select",
-            [](const std::string& param, Rml::Event& event) {
-                start_map_select = true;
-                recomp::start_game(supported_games[0].game_id);
-                recompui::hide_all_contexts();
-            }
-        );
         recompui::register_event(listener, "open_controls",
             [](const std::string& param, Rml::Event& event) {
                 recompui::set_config_tab(recompui::ConfigTab::Controls);

@@ -1,0 +1,27 @@
+# Map select: A on the first entry (Hyrule Field).
+0
+4 A
+4.3
+# Walk forward, then pause/unpause three times, flipping pages while paused.
+11 Y=1
+14
+15 START
+15.3
+19 R
+19.3
+21 START
+21.3
+25 START
+25.3
+28 R
+28.3
+29 L
+29.3
+31 START
+31.3
+35 START
+35.3
+39 START
+39.3
+42 Y=1
+45

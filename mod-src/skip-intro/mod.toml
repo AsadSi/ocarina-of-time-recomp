@@ -1,0 +1,21 @@
+[manifest]
+id = "oot_skip_intro"
+version = "1.0.0"
+display_name = "Skip Intro"
+description = """
+Starts a new game in Link's house, skipping the opening cutscene with the Great Deku Tree and Navi. \
+Files that have already watched the intro are not affected."""
+short_description = "New games skip the opening cutscene."
+authors = [ "asadsi" ]
+game_id = "oot"
+minimum_recomp_version = "1.2.2"
+dependencies = []
+optional_dependencies = []
+native_libraries = []
+
+[inputs]
+elf_path = "build/mod.elf"
+mod_filename = "oot_skip_intro"
+func_reference_syms_file = "../../OoTRecompSyms/oot.pal-1.1.syms.toml"
+data_reference_syms_files = [ "../../OoTRecompSyms/oot.pal-1.1.datasyms.toml" ]
+additional_files = []

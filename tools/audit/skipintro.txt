@@ -1,0 +1,24 @@
+# Fresh game with the Skip Intro mod: language, new file AAAA, open it.
+0
+13 START
+13.3
+18 A
+18.3
+21 A
+21.3
+30 A
+30.3
+30.8 A
+31.1
+31.6 A
+31.9
+32.4 A
+32.7
+35 START
+35.3
+36.5 A
+36.8
+40 A
+40.3
+43 A
+43.3
