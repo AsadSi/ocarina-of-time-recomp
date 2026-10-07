@@ -831,7 +831,7 @@ void Play_Draw(PlayState* this);
 extern Input* D_8012D1F8;
 #define PLAY_LOG(line) (void)0
 
-// @recomp Patched to hook the analog camera and autosave into each frame. Original: Play_Main in src/code/z_play.c.
+// @recomp Patched to hook the analog camera, autosave and D-pad items into each frame. Original: Play_Main in src/code/z_play.c.
 RECOMP_PATCH void Play_Main(GameState* thisx) {
     PlayState* this = (PlayState*)thisx;
 
@@ -863,9 +863,10 @@ RECOMP_PATCH void Play_Main(GameState* thisx) {
         Play_Update(this);
     }
 
-    // @recomp Follow up on this frame's update for the analog camera and autosave.
+    // @recomp Follow up on this frame's update for the analog camera, autosave and D-pad item assignment.
     analog_cam_post_play_update(this);
     autosave_post_play_update(this);
+    dpad_post_play_update(this);
 
     PLAY_LOG(4583);
 

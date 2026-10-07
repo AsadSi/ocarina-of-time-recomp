@@ -62,4 +62,7 @@ struct PlayState;
 void autosave_post_play_update(struct PlayState* play);
 void autosave_draw_icon(struct PlayState* play);
 
+// dpad.c
+void dpad_post_play_update(struct PlayState* play);
+
 #endif
