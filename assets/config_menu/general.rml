@@ -6,8 +6,8 @@
             <div class="config__hz-wrapper" id="conf-general__hz-wrapper">
                 <!-- Options -->
                 <div class="config__wrapper" data-event-mouseout="set_cur_config_index(-1)" id="conf-general__wrapper">
-                    <!-- Targeting mode, gyro and mouse aiming, autosave, camera inversion and analog camera only work through
-                         Majora's Mask patches. They return here as their Ocarina of Time patches are written. -->
+                    <!-- Targeting mode, gyro and mouse aiming, autosave and camera inversion only work through Majora's Mask
+                         patches. They return here as their Ocarina of Time patches are written. -->
                     <!-- rumble strength -->
                     <div class="config-option" data-event-mouseover="set_cur_config_index(1)">
                         <label class="config-option__title">Rumble Strength</label>
@@ -58,7 +58,7 @@
                                 data-checked="background_input_mode"
                                 value="On"
                                 id="bg_input_enabled"
-                                style="nav-up: #joystick_deadzone_input"
+                                style="nav-up: #joystick_deadzone_input; nav-down: #analog_cam_enabled"
                             />
                             <label class="config-option__tab-label" for="bg_input_enabled">On</label>
 
@@ -70,12 +70,95 @@
                                 data-checked="background_input_mode"
                                 value="Off"
                                 id="bg_input_disabled"
-                                style="nav-up: #joystick_deadzone_input"
+                                style="nav-up: #joystick_deadzone_input; nav-down: #analog_cam_disabled"
                             />
                             <label class="config-option__tab-label" for="bg_input_disabled">Off</label>
                         </div>
                     </div>
 
+                    <!-- analog camera -->
+                    <div class="config-option" data-event-mouseover="set_cur_config_index(8)">
+                        <label class="config-option__title">Analog Camera</label>
+                        <div class="config-option__list">
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(8)"
+                                name="analog_cam_mode"
+                                data-checked="analog_cam_mode"
+                                value="On"
+                                id="analog_cam_enabled"
+                                style="nav-up: #bg_input_enabled; nav-down: #analog_camera_inversion_none"
+                            />
+                            <label class="config-option__tab-label" for="analog_cam_enabled">On</label>
+
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(8)"
+                                name="analog_cam_mode"
+                                data-checked="analog_cam_mode"
+                                value="Off"
+                                id="analog_cam_disabled"
+                                style="nav-up: #bg_input_disabled; nav-down: #analog_camera_inversion_x"
+                            />
+                            <label class="config-option__tab-label" for="analog_cam_disabled">Off</label>
+                        </div>
+                    </div>
+                    
+                    <!-- analog camera inversion -->
+                    <div class="config-option" data-event-mouseover="set_cur_config_index(9)">
+                        <label class="config-option__title">Analog Camera Mode</label>
+                        <div class="config-option__list">
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(9)"
+                                name="analog_camera_invert_mode"
+                                data-checked="analog_camera_invert_mode"
+                                value="InvertNone"
+                                id="analog_camera_inversion_none"
+                                style="nav-up: #analog_cam_enabled;"
+                            />
+                            <label class="config-option__tab-label" for="analog_camera_inversion_none">None</label>
+
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(9)"
+                                name="analog_camera_invert_mode"
+                                data-checked="analog_camera_invert_mode"
+                                value="InvertX"
+                                id="analog_camera_inversion_x"
+                                style="nav-up: #analog_cam_disabled;"
+                            />
+                            <label class="config-option__tab-label" for="analog_camera_inversion_x">Invert X</label>
+
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(9)"
+                                name="analog_camera_invert_mode"
+                                data-checked="analog_camera_invert_mode"
+                                value="InvertY"
+                                id="analog_camera_inversion_y"
+                                style="nav-up: #analog_cam_disabled;"
+                            />
+                            <label class="config-option__tab-label" for="analog_camera_inversion_y">Invert Y</label>
+
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(9)"
+                                name="analog_camera_invert_mode"
+                                data-checked="analog_camera_invert_mode"
+                                value="InvertBoth"
+                                id="analog_camera_inversion_both"
+                                style="nav-up: #analog_cam_disabled;"
+                            />
+                            <label class="config-option__tab-label" for="analog_camera_inversion_both">Invert Both</label>
+                        </div>
+                    </div>
                 </div>
                 <!-- Descriptions -->
                 <div class="config__wrapper">
