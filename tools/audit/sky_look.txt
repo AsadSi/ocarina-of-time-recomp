@@ -1,0 +1,10 @@
+# Map select: Hyrule Field. First-person view, tilt fully up, then sweep around to find the sun.
+0
+4 A
+4.3
+14 CU
+14.2
+15 Y=-1
+17.5 X=1 Y=-1
+24 X=1
+24.5
