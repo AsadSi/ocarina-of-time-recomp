@@ -1,0 +1,26 @@
+# Map select: entry 5 (Kokiri Forest), daytime, child. Walk around outside: Navi, grass, butterflies.
+0
+4 DD
+4.2
+4.8 DD
+5.0
+5.6 DD
+5.8
+6.4 DD
+6.6
+7.4 A
+7.7
+# Walk forward, turn, walk; slash the sword at grass; roll.
+16 Y=1
+20 X=1 Y=0.5
+23 Y=1
+26
+27 B
+27.3
+28 B
+28.3
+30 X=-1
+33 Y=-1
+36 Y=-1 A
+36.3 Y=-1
+38

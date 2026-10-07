@@ -1,0 +1,25 @@
+# Map select: B switches to adult, A loads entry 1 (Hyrule Field). Swing the sword, roll, look around.
+0
+4 B
+4.2
+5 A
+5.3
+14 B
+14.15
+15 B
+15.15
+16 B
+16.15
+17 X=1 B
+17.15 X=1
+18
+19 Y=1
+22 Y=1 A
+22.3 Y=1
+24 X=-1 Y=0.3
+27
+28 B
+28.15
+29.5 B
+29.65
+31
