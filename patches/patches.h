@@ -39,6 +39,20 @@
 #define gEXMatrixGroupDecomposedVerts(cmd, id, push, proj, edit) \
     gEXMatrixGroupDecomposedTC(cmd, id, push, proj, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE)
 
+#define gEXMatrixGroupDecomposedSkipRot(cmd, id, push, proj, edit) \
+    gEXMatrixGroupDecomposedTC(cmd, id, push, proj, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE)
+
+// A tag for something in the world: interpolated normally, but without rotation on a frame where the camera cut,
+// since billboards turn with the camera and would otherwise swing round from the old view.
+#define gEXMatrixGroupDecomposedObject(cmd, id, push, proj, edit) \
+    do { \
+        if (camera_was_skipped()) { \
+            gEXMatrixGroupDecomposedSkipRot(cmd, id, push, proj, edit); \
+        } else { \
+            gEXMatrixGroupDecomposedNormal(cmd, id, push, proj, edit); \
+        } \
+    } while (0)
+
 #define gEXMatrixGroupDecomposedSkipAll(cmd, id, push, proj, edit) \
     gEXMatrixGroupDecomposedTC(cmd, id, push, proj, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP)
 

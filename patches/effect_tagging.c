@@ -25,8 +25,8 @@ extern EffectInfo sEffectInfoTable[];
 static void tag_effect(GraphicsContext* gfxCtx, u32 id, int interpolate) {
     OPEN_DISPS(gfxCtx, "../z_effect.c", 0);
     if (interpolate) {
-        gEXMatrixGroupDecomposedNormal(POLY_OPA_DISP++, id, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
-        gEXMatrixGroupDecomposedNormal(POLY_XLU_DISP++, id + EFFECT_TRANSFORM_ID_COUNT, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
+        gEXMatrixGroupDecomposedObject(POLY_OPA_DISP++, id, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
+        gEXMatrixGroupDecomposedObject(POLY_XLU_DISP++, id + EFFECT_TRANSFORM_ID_COUNT, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
     } else {
         gEXMatrixGroupDecomposedSkipAll(POLY_OPA_DISP++, id, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_NONE);
         gEXMatrixGroupDecomposedSkipAll(POLY_XLU_DISP++, id + EFFECT_TRANSFORM_ID_COUNT, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_NONE);

@@ -60,7 +60,7 @@ static void actor_registry_remove(Actor* actor) {
 }
 
 static Gfx* tag_push(Gfx* dlist, u32 id) {
-    gEXMatrixGroupDecomposedNormal(dlist++, id, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
+    gEXMatrixGroupDecomposedObject(dlist++, id, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
     return dlist;
 }
 
@@ -161,12 +161,12 @@ RECOMP_PATCH void Actor_Draw(PlayState* play, Actor* actor) {
     // skeleton (already tagged per limb) or something the order of loads can't identify reliably.
     if (actorId != TRANSFORM_ID_NONE) {
         if (count_matrix_loads(opaSlot, POLY_OPA_DISP) == 1) {
-            gEXMatrixGroupDecomposedNormal(opaSlot, actorId + ACTOR_TRANSFORM_WHOLE_OPA_OFFSET, G_EX_PUSH,
+            gEXMatrixGroupDecomposedObject(opaSlot, actorId + ACTOR_TRANSFORM_WHOLE_OPA_OFFSET, G_EX_PUSH,
                                            G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
             POLY_OPA_DISP = tag_pop(POLY_OPA_DISP);
         }
         if (count_matrix_loads(xluSlot, POLY_XLU_DISP) == 1) {
-            gEXMatrixGroupDecomposedNormal(xluSlot, actorId + ACTOR_TRANSFORM_WHOLE_XLU_OFFSET, G_EX_PUSH,
+            gEXMatrixGroupDecomposedObject(xluSlot, actorId + ACTOR_TRANSFORM_WHOLE_XLU_OFFSET, G_EX_PUSH,
                                            G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
             POLY_XLU_DISP = tag_pop(POLY_XLU_DISP);
         }
