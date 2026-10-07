@@ -1,0 +1,26 @@
+# Map select: L x4 (entry 60), D-up x2 = entry 58 Kokiri Shop. Walk to the counter and talk (text box).
+0
+4 L
+4.2
+4.8 L
+5.0
+5.6 L
+5.8
+6.4 L
+6.6
+7.2 DU
+7.4
+8.0 DU
+8.2
+9 A
+9.3
+17 Y=1
+18.5
+19 A
+19.2
+22 A
+22.2
+24 A
+24.2
+26 A
+26.2

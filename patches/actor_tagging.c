@@ -7,8 +7,13 @@
 #include "gfx.h"
 #include "light.h"
 #include "play_state.h"
+#include "printf.h"
 #include "segmented_address.h"
+#include "skin.h"
+#include "skin_matrix.h"
+#include "stack_pad.h"
 #include "sys_matrix.h"
+#include "translation.h"
 
 // Tags actors and their skeletons for frame interpolation, following Zelda64Recomp's actor tagging.
 //
@@ -175,8 +180,17 @@ RECOMP_PATCH void Actor_Draw(PlayState* play, Actor* actor) {
         }
     }
 
+    // @recomp Tag the shadow, which draws after the actor's own tags have closed.
     if (actor->shape.shadowDraw != NULL) {
+        if (actorId != TRANSFORM_ID_NONE) {
+            POLY_OPA_DISP = tag_push(POLY_OPA_DISP, actorId + ACTOR_TRANSFORM_SHADOW_OFFSET);
+            POLY_XLU_DISP = tag_push(POLY_XLU_DISP, actorId + ACTOR_TRANSFORM_SHADOW_OFFSET);
+        }
         actor->shape.shadowDraw(actor, lights, play);
+        if (actorId != TRANSFORM_ID_NONE) {
+            POLY_OPA_DISP = tag_pop(POLY_OPA_DISP);
+            POLY_XLU_DISP = tag_pop(POLY_XLU_DISP);
+        }
     }
 
     CLOSE_DISPS(play->state.gfxCtx, "../z_actor.c", 6119);
@@ -570,4 +584,439 @@ RECOMP_PATCH void SkelAnime_DrawFlexLod(PlayState* play, void** skeleton, Vec3s*
     Matrix_Pop();
 
     CLOSE_DISPS(play->state.gfxCtx, "../z_skelanime.c", 1053);
+}
+
+// The remaining skeleton variants, tagged the same way: the non-flexible level of detail skeleton, and the
+// skeletons drawn into a display list the caller passes in (Navi and most translucent skeletons).
+
+// @recomp Patched to tag each limb.
+RECOMP_PATCH void SkelAnime_DrawLimbLod(PlayState* play, s32 limbIndex, void** skeleton, Vec3s* jointTable,
+                           OverrideLimbDrawOpa overrideLimbDraw, PostLimbDrawOpa postLimbDraw, void* arg, s32 lod) {
+    LodLimb* limb;
+    Gfx* dList;
+    Vec3f pos;
+    Vec3s rot;
+    u32 actorId = actor_transform_id(arg, false);
+
+    OPEN_DISPS(play->state.gfxCtx, "../z_skelanime.c", 773);
+
+    Matrix_Push();
+    limb = (LodLimb*)SEGMENTED_TO_VIRTUAL(skeleton[limbIndex]);
+    limbIndex++;
+    rot = jointTable[limbIndex];
+
+    pos.x = limb->jointPos.x;
+    pos.y = limb->jointPos.y;
+    pos.z = limb->jointPos.z;
+
+    dList = limb->dLists[lod];
+
+    if (actorId != TRANSFORM_ID_NONE) {
+        POLY_OPA_DISP = tag_push(POLY_OPA_DISP, actorId + ACTOR_TRANSFORM_LIMB_OFFSET + limbIndex);
+    }
+    if ((overrideLimbDraw == NULL) || !overrideLimbDraw(play, limbIndex, &dList, &pos, &rot, arg)) {
+        Matrix_TranslateRotateZYX(&pos, &rot);
+        if (dList != NULL) {
+            MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx, "../z_skelanime.c", 805);
+            gSPDisplayList(POLY_OPA_DISP++, dList);
+        }
+    }
+
+    if (actorId != TRANSFORM_ID_NONE) {
+        POLY_OPA_DISP = tag_pop(POLY_OPA_DISP);
+        POLY_OPA_DISP = tag_push(POLY_OPA_DISP, actorId + ACTOR_TRANSFORM_POST_LIMB_OFFSET + limbIndex);
+    }
+    if (postLimbDraw != NULL) {
+        postLimbDraw(play, limbIndex, &dList, &rot, arg);
+    }
+    if (actorId != TRANSFORM_ID_NONE) {
+        POLY_OPA_DISP = tag_pop(POLY_OPA_DISP);
+    }
+
+    if (limb->child != LIMB_DONE) {
+        SkelAnime_DrawLimbLod(play, limb->child, skeleton, jointTable, overrideLimbDraw, postLimbDraw, arg, lod);
+    }
+
+    Matrix_Pop();
+
+    if (limb->sibling != LIMB_DONE) {
+        SkelAnime_DrawLimbLod(play, limb->sibling, skeleton, jointTable, overrideLimbDraw, postLimbDraw, arg, lod);
+    }
+
+    CLOSE_DISPS(play->state.gfxCtx, "../z_skelanime.c", 821);
+}
+
+// @recomp Patched to tag the root limb.
+RECOMP_PATCH void SkelAnime_DrawLod(PlayState* play, void** skeleton, Vec3s* jointTable, OverrideLimbDrawOpa overrideLimbDraw,
+                       PostLimbDrawOpa postLimbDraw, void* arg, s32 lod) {
+    LodLimb* rootLimb;
+    STACK_PAD(s32);
+    Gfx* dList;
+    Vec3f pos;
+    Vec3s rot;
+    u32 actorId = actor_transform_id(arg, false);
+
+    if (skeleton == NULL) {
+        PRINTF_COLOR_RED();
+        PRINTF(T("Si2_Lod_draw():skelがNULLです。\n", "Si2_Lod_draw(): skel is NULL.\n"));
+        PRINTF_RST();
+        return;
+    }
+
+    OPEN_DISPS(play->state.gfxCtx, "../z_skelanime.c", 849);
+
+    Matrix_Push();
+
+    rootLimb = (LodLimb*)SEGMENTED_TO_VIRTUAL(skeleton[0]);
+    pos.x = jointTable[0].x;
+    pos.y = jointTable[0].y;
+    pos.z = jointTable[0].z;
+
+    rot = jointTable[1];
+    dList = rootLimb->dLists[lod];
+
+    if (actorId != TRANSFORM_ID_NONE) {
+        POLY_OPA_DISP = tag_push(POLY_OPA_DISP, actorId + ACTOR_TRANSFORM_LIMB_OFFSET + 1);
+    }
+    if ((overrideLimbDraw == NULL) || !overrideLimbDraw(play, 1, &dList, &pos, &rot, arg)) {
+        Matrix_TranslateRotateZYX(&pos, &rot);
+        if (dList != NULL) {
+            MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx, "../z_skelanime.c", 881);
+            gSPDisplayList(POLY_OPA_DISP++, dList);
+        }
+    }
+    if (actorId != TRANSFORM_ID_NONE) {
+        POLY_OPA_DISP = tag_pop(POLY_OPA_DISP);
+        POLY_OPA_DISP = tag_push(POLY_OPA_DISP, actorId + ACTOR_TRANSFORM_POST_LIMB_OFFSET + 1);
+    }
+    if (postLimbDraw != NULL) {
+        postLimbDraw(play, 1, &dList, &rot, arg);
+    }
+    if (actorId != TRANSFORM_ID_NONE) {
+        POLY_OPA_DISP = tag_pop(POLY_OPA_DISP);
+    }
+
+    if (rootLimb->child != LIMB_DONE) {
+        SkelAnime_DrawLimbLod(play, rootLimb->child, skeleton, jointTable, overrideLimbDraw, postLimbDraw, arg, lod);
+    }
+
+    Matrix_Pop();
+
+    CLOSE_DISPS(play->state.gfxCtx, "../z_skelanime.c", 894);
+}
+
+// @recomp Patched to tag each limb.
+RECOMP_PATCH Gfx* SkelAnime_DrawLimb(PlayState* play, s32 limbIndex, void** skeleton, Vec3s* jointTable,
+                        OverrideLimbDraw overrideLimbDraw, PostLimbDraw postLimbDraw, void* arg, Gfx* gfx) {
+    StandardLimb* limb;
+    Gfx* dList;
+    Vec3f pos;
+    Vec3s rot;
+    u32 actorId = actor_transform_id(arg, false);
+
+    Matrix_Push();
+
+    limb = (StandardLimb*)SEGMENTED_TO_VIRTUAL(skeleton[limbIndex]);
+    limbIndex++;
+
+    rot = jointTable[limbIndex];
+
+    pos.x = limb->jointPos.x;
+    pos.y = limb->jointPos.y;
+    pos.z = limb->jointPos.z;
+
+    dList = limb->dList;
+
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_push(gfx, actorId + ACTOR_TRANSFORM_LIMB_OFFSET + limbIndex);
+    }
+    if ((overrideLimbDraw == NULL) || !overrideLimbDraw(play, limbIndex, &dList, &pos, &rot, arg, &gfx)) {
+        Matrix_TranslateRotateZYX(&pos, &rot);
+        if (dList != NULL) {
+            MATRIX_FINALIZE_AND_LOAD(gfx++, play->state.gfxCtx, "../z_skelanime.c", 1489);
+            gSPDisplayList(gfx++, dList);
+        }
+    }
+
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_pop(gfx);
+        gfx = tag_push(gfx, actorId + ACTOR_TRANSFORM_POST_LIMB_OFFSET + limbIndex);
+    }
+    if (postLimbDraw != NULL) {
+        postLimbDraw(play, limbIndex, &dList, &rot, arg, &gfx);
+    }
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_pop(gfx);
+    }
+
+    if (limb->child != LIMB_DONE) {
+        gfx = SkelAnime_DrawLimb(play, limb->child, skeleton, jointTable, overrideLimbDraw, postLimbDraw, arg, gfx);
+    }
+
+    Matrix_Pop();
+
+    if (limb->sibling != LIMB_DONE) {
+        gfx = SkelAnime_DrawLimb(play, limb->sibling, skeleton, jointTable, overrideLimbDraw, postLimbDraw, arg, gfx);
+    }
+
+    return gfx;
+}
+
+// @recomp Patched to tag the root limb.
+RECOMP_PATCH Gfx* SkelAnime_Draw(PlayState* play, void** skeleton, Vec3s* jointTable, OverrideLimbDraw overrideLimbDraw,
+                    PostLimbDraw postLimbDraw, void* arg, Gfx* gfx) {
+    StandardLimb* rootLimb;
+    STACK_PAD(s32);
+    Gfx* dList;
+    Vec3f pos;
+    Vec3s rot;
+    u32 actorId = actor_transform_id(arg, false);
+
+    if (skeleton == NULL) {
+        PRINTF_COLOR_RED();
+        PRINTF(T("Si2_draw2():skelがNULLです。NULLを返します。\n", "Si2_draw2(): skel is NULL. Returns NULL.\n"));
+        PRINTF_RST();
+        return NULL;
+    }
+
+    Matrix_Push();
+
+    rootLimb = (StandardLimb*)SEGMENTED_TO_VIRTUAL(skeleton[0]);
+
+    pos.x = jointTable[0].x;
+    pos.y = jointTable[0].y;
+    pos.z = jointTable[0].z;
+
+    rot = jointTable[1];
+
+    dList = rootLimb->dList;
+
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_push(gfx, actorId + ACTOR_TRANSFORM_LIMB_OFFSET + 1);
+    }
+    if ((overrideLimbDraw == NULL) || !overrideLimbDraw(play, 1, &dList, &pos, &rot, arg, &gfx)) {
+        Matrix_TranslateRotateZYX(&pos, &rot);
+        if (dList != NULL) {
+            MATRIX_FINALIZE_AND_LOAD(gfx++, play->state.gfxCtx, "../z_skelanime.c", 1558);
+            gSPDisplayList(gfx++, dList);
+        }
+    }
+
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_pop(gfx);
+        gfx = tag_push(gfx, actorId + ACTOR_TRANSFORM_POST_LIMB_OFFSET + 1);
+    }
+    if (postLimbDraw != NULL) {
+        postLimbDraw(play, 1, &dList, &rot, arg, &gfx);
+    }
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_pop(gfx);
+    }
+
+    if (rootLimb->child != LIMB_DONE) {
+        gfx = SkelAnime_DrawLimb(play, rootLimb->child, skeleton, jointTable, overrideLimbDraw, postLimbDraw, arg, gfx);
+    }
+
+    Matrix_Pop();
+
+    return gfx;
+}
+
+// @recomp Patched to tag each limb.
+RECOMP_PATCH Gfx* SkelAnime_DrawFlexLimb(PlayState* play, s32 limbIndex, void** skeleton, Vec3s* jointTable,
+                            OverrideLimbDraw overrideLimbDraw, PostLimbDraw postLimbDraw, void* arg, Mtx** mtx,
+                            Gfx* gfx) {
+    StandardLimb* limb;
+    Gfx* newDList;
+    Gfx* limbDList;
+    Vec3f pos;
+    Vec3s rot;
+    u32 actorId = actor_transform_id(arg, false);
+
+    Matrix_Push();
+
+    limb = (StandardLimb*)SEGMENTED_TO_VIRTUAL(skeleton[limbIndex]);
+    limbIndex++;
+    rot = jointTable[limbIndex];
+
+    pos.x = limb->jointPos.x;
+    pos.y = limb->jointPos.y;
+    pos.z = limb->jointPos.z;
+
+    newDList = limbDList = limb->dList;
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_push(gfx, actorId + ACTOR_TRANSFORM_LIMB_OFFSET + limbIndex);
+    }
+    if ((overrideLimbDraw == NULL) || !overrideLimbDraw(play, limbIndex, &newDList, &pos, &rot, arg, &gfx)) {
+        Matrix_TranslateRotateZYX(&pos, &rot);
+        if (newDList != NULL) {
+            MATRIX_TO_MTX(*mtx, "../z_skelanime.c", 1623);
+            gSPMatrix(gfx++, *mtx, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+            gSPDisplayList(gfx++, newDList);
+            (*mtx)++;
+        } else if (limbDList != NULL) {
+            MATRIX_TO_MTX(*mtx, "../z_skelanime.c", 1630);
+            (*mtx)++;
+        }
+    }
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_pop(gfx);
+        gfx = tag_push(gfx, actorId + ACTOR_TRANSFORM_POST_LIMB_OFFSET + limbIndex);
+    }
+    if (postLimbDraw != NULL) {
+        postLimbDraw(play, limbIndex, &limbDList, &rot, arg, &gfx);
+    }
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_pop(gfx);
+    }
+    if (limb->child != LIMB_DONE) {
+        gfx = SkelAnime_DrawFlexLimb(play, limb->child, skeleton, jointTable, overrideLimbDraw, postLimbDraw, arg, mtx,
+                                     gfx);
+    }
+
+    Matrix_Pop();
+
+    if (limb->sibling != LIMB_DONE) {
+        gfx = SkelAnime_DrawFlexLimb(play, limb->sibling, skeleton, jointTable, overrideLimbDraw, postLimbDraw, arg,
+                                     mtx, gfx);
+    }
+
+    return gfx;
+}
+
+// @recomp Patched to tag the root limb.
+RECOMP_PATCH Gfx* SkelAnime_DrawFlex(PlayState* play, void** skeleton, Vec3s* jointTable, s32 dListCount,
+                        OverrideLimbDraw overrideLimbDraw, PostLimbDraw postLimbDraw, void* arg, Gfx* gfx) {
+    StandardLimb* rootLimb;
+    STACK_PAD(s32);
+    Gfx* newDList;
+    Gfx* limbDList;
+    Vec3f pos;
+    Vec3s rot;
+    u32 actorId = actor_transform_id(arg, false);
+    Mtx* mtx = GRAPH_ALLOC(play->state.gfxCtx, dListCount * sizeof(*mtx));
+
+    if (skeleton == NULL) {
+        PRINTF_COLOR_RED();
+        PRINTF(T("Si2_draw2_SV():skelがNULLです。NULLを返します。\n", "Si2_draw2_SV(): skel is NULL. Returns NULL.\n"));
+        PRINTF_RST();
+        return NULL;
+    }
+
+    gSPSegment(gfx++, 0xD, mtx);
+    Matrix_Push();
+    rootLimb = (StandardLimb*)SEGMENTED_TO_VIRTUAL(skeleton[0]);
+
+    pos.x = jointTable[0].x;
+    pos.y = jointTable[0].y;
+    pos.z = jointTable[0].z;
+
+    rot = jointTable[1];
+
+    newDList = limbDList = rootLimb->dList;
+
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_push(gfx, actorId + ACTOR_TRANSFORM_LIMB_OFFSET + 1);
+    }
+    if ((overrideLimbDraw == NULL) || !overrideLimbDraw(play, 1, &newDList, &pos, &rot, arg, &gfx)) {
+        Matrix_TranslateRotateZYX(&pos, &rot);
+        if (newDList != NULL) {
+            MATRIX_TO_MTX(mtx, "../z_skelanime.c", 1710);
+            gSPMatrix(gfx++, mtx, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+            gSPDisplayList(gfx++, newDList);
+            mtx++;
+        } else if (limbDList != NULL) {
+            MATRIX_TO_MTX(mtx, "../z_skelanime.c", 1717);
+            mtx++;
+        }
+    }
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_pop(gfx);
+        gfx = tag_push(gfx, actorId + ACTOR_TRANSFORM_POST_LIMB_OFFSET + 1);
+    }
+    if (postLimbDraw != NULL) {
+        postLimbDraw(play, 1, &limbDList, &rot, arg, &gfx);
+    }
+    if (actorId != TRANSFORM_ID_NONE) {
+        gfx = tag_pop(gfx);
+    }
+    if (rootLimb->child != LIMB_DONE) {
+        gfx = SkelAnime_DrawFlexLimb(play, rootLimb->child, skeleton, jointTable, overrideLimbDraw, postLimbDraw, arg,
+                                     &mtx, gfx);
+    }
+
+    Matrix_Pop();
+
+    return gfx;
+}
+
+extern MtxF gSkinLimbMatrices[60];
+
+// @recomp Patched to tag each limb of a skinned skeleton (Epona and the other horses). A skinned limb's
+// vertices are rewritten every frame, so its group interpolates vertices too, as in Zelda64Recomp. Each limb
+// gets its own matrix (the current one multiplied by the identity) for the tag to attach to.
+// Original: Skin_DrawImpl in src/code/z_skin.c.
+RECOMP_PATCH void Skin_DrawImpl(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw,
+                                SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation, s32 arg6, s32 drawFlags) {
+    s32 i;
+    s32 segmentType;
+    SkinLimb** skeleton;
+    GraphicsContext* gfxCtx = play->state.gfxCtx;
+    Mtx* mtx;
+    u32 actorId = actor_transform_id(actor, false);
+
+    OPEN_DISPS(gfxCtx, "../z_skin.c", 471);
+
+    if (!(drawFlags & SKIN_DRAW_FLAG_CUSTOM_TRANSFORMS)) {
+        Skin_ApplyAnimTransformations(skin, gSkinLimbMatrices, actor, setTranslation);
+    }
+
+    skeleton = SEGMENTED_TO_VIRTUAL(skin->skeletonHeader->segment);
+
+    if (!(drawFlags & SKIN_DRAW_FLAG_CUSTOM_MATRIX)) {
+        gSPMatrix(POLY_OPA_DISP++, &gIdentityMtx, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+        mtx = SkinMatrix_MtxFToNewMtx(gfxCtx, &skin->mtx);
+
+        if (mtx == NULL) {
+            goto close_disps;
+        }
+
+        gSPMatrix(POLY_OPA_DISP++, mtx, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+    }
+
+    for (i = 0; i < skin->skeletonHeader->limbCount; i++) {
+        s32 shouldDraw = true;
+
+        if (overrideLimbDraw != NULL) {
+            shouldDraw = overrideLimbDraw(actor, play, i, skin);
+        }
+
+        segmentType = ((SkinLimb*)SEGMENTED_TO_VIRTUAL(skeleton[i]))->segmentType;
+
+        // @recomp Give the limb a matrix of its own and tag it.
+        if (actorId != TRANSFORM_ID_NONE) {
+            gSPMatrix(POLY_OPA_DISP++, &gIdentityMtx, G_MTX_PUSH | G_MTX_MUL | G_MTX_MODELVIEW);
+            gEXMatrixGroupDecomposedVerts(POLY_OPA_DISP++, actorId + ACTOR_TRANSFORM_LIMB_OFFSET + i, G_EX_PUSH,
+                                          G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
+        }
+
+        if (segmentType == SKIN_LIMB_TYPE_ANIMATED && shouldDraw == true) {
+            Skin_DrawAnimatedLimb(gfxCtx, skin, i, arg6, drawFlags);
+        } else if (segmentType == SKIN_LIMB_TYPE_NORMAL && shouldDraw == true) {
+            Skin_DrawLimb(gfxCtx, skin, i, NULL, drawFlags);
+        }
+
+        // @recomp Pop the limb's matrix and tag.
+        if (actorId != TRANSFORM_ID_NONE) {
+            gSPPopMatrix(POLY_OPA_DISP++, G_MTX_MODELVIEW);
+            POLY_OPA_DISP = tag_pop(POLY_OPA_DISP);
+        }
+    }
+
+    if (postDraw != NULL) {
+        postDraw(actor, play, skin);
+    }
+
+close_disps:
+    CLOSE_DISPS(gfxCtx, "../z_skin.c", 534);
 }

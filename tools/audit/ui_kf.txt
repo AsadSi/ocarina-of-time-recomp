@@ -1,0 +1,22 @@
+# Map select: Kokiri Forest. Z-target (letterbox slides in and out), then talk to Navi (text box).
+0
+4 DD
+4.2
+4.8 DD
+5.0
+5.6 DD
+5.8
+6.4 DD
+6.6
+7.4 A
+7.7
+16 Z
+17.5
+20 CU
+20.2
+23 A
+23.2
+24 A
+24.2
+25 A
+25.2
