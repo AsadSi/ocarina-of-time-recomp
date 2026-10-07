@@ -13,12 +13,44 @@
 #include "audio.h"
 #include "play_state.h"
 #include "speed_meter.h"
+#include "thga.h"
+#include "sys_cfb.h"
 
 // From src/code/graph.c.
 #define GFXPOOL_HEAD_MAGIC 0x1234
 #define GFXPOOL_TAIL_MAGIC 0x5678
 
-void Graph_InitTHGA(GraphicsContext* gfxCtx);
+// Four times the game's own display list buffers, to make room for RT64's interpolation tags.
+// They live in the patch memory above the console's 8 MB, which gEXSetRDRAMExtended lets RT64 read.
+typedef struct {
+    Gfx polyOpaBuffer[0x17E0 * 4];
+    Gfx polyXluBuffer[0x800 * 4];
+    Gfx overlayBuffer[0x400 * 4];
+    Gfx workBuffer[0x80 * 4];
+} BiggerGfxPool;
+
+static BiggerGfxPool sBiggerGfxPools[2];
+
+// @recomp Patched to use the bigger display list buffers. Original: Graph_InitTHGA in src/code/graph.c.
+RECOMP_PATCH void Graph_InitTHGA(GraphicsContext* gfxCtx) {
+    GfxPool* pool = &gGfxPools[gfxCtx->gfxPoolIdx & 1];
+    BiggerGfxPool* bigger = &sBiggerGfxPools[gfxCtx->gfxPoolIdx & 1];
+
+    pool->headMagic = GFXPOOL_HEAD_MAGIC;
+    pool->tailMagic = GFXPOOL_TAIL_MAGIC;
+    THGA_Init(&gfxCtx->polyOpa, bigger->polyOpaBuffer, sizeof(bigger->polyOpaBuffer));
+    THGA_Init(&gfxCtx->polyXlu, bigger->polyXluBuffer, sizeof(bigger->polyXluBuffer));
+    THGA_Init(&gfxCtx->overlay, bigger->overlayBuffer, sizeof(bigger->overlayBuffer));
+    THGA_Init(&gfxCtx->work, bigger->workBuffer, sizeof(bigger->workBuffer));
+
+    gfxCtx->polyOpaBuffer = bigger->polyOpaBuffer;
+    gfxCtx->polyXluBuffer = bigger->polyXluBuffer;
+    gfxCtx->overlayBuffer = bigger->overlayBuffer;
+    gfxCtx->workBuffer = bigger->workBuffer;
+
+    gfxCtx->curFrameBuffer = SysCfb_GetFbPtr(gfxCtx->fbIdx % 2);
+    gfxCtx->unk_014 = 0;
+}
 void Graph_TaskSet00(GraphicsContext* gfxCtx);
 extern OSTime sGraphPrevUpdateEndTime;
 
@@ -40,6 +72,7 @@ RECOMP_PATCH void Graph_Update(GraphicsContext* gfxCtx, GameState* gameState) {
     }
     OPEN_DISPS(gfxCtx, "../graph.c", 966);
     gEXEnable(WORK_DISP++);
+    gEXSetRDRAMExtended(WORK_DISP++, 1);
     gEXSetRefreshRate(WORK_DISP++, 50 / updateRate);
     CLOSE_DISPS(gfxCtx, "../graph.c", 975);
 

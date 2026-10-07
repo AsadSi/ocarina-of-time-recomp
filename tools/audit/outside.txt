@@ -1,0 +1,17 @@
+# Open file 1 and walk out of Link's house into Kokiri Forest.
+0
+13 START
+13.3
+18 START
+18.3
+27 A
+27.3
+29.5 A
+29.8
+35 Y=-1
+39 X=0.6 Y=-1
+42 Y=-1
+50 X=-1
+53 Y=1
+58 X=1
+62
