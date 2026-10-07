@@ -39,7 +39,7 @@ void select_rom() {
                     break;
                 case recomp::RomValidationError::IncorrectVersion:
                     recompui::message_box(
-                            "This ROM is the correct game, but the wrong version.\nThis project requires the NTSC-U N64 version of the game.");
+                            "This ROM is the correct game, but the wrong version.\nThis project requires the European N64 version of the game (PAL, Rev 1).");
                     break;
                 case recomp::RomValidationError::OtherError:
                     recompui::message_box("An unknown error has occurred.");
@@ -52,10 +52,21 @@ void select_rom() {
 recompui::ContextId launcher_context;
 static bool autostart_requested = false;
 static bool start_map_select = false;
+static bool open_mods_requested = false;
 
 void recompui::request_autostart(bool map_select) {
     autostart_requested = true;
     start_map_select = map_select;
+}
+
+void recompui::request_open_mods() {
+    open_mods_requested = true;
+}
+
+static void open_mods_menu() {
+    recompui::set_config_tab(recompui::ConfigTab::Mods);
+    recompui::hide_all_contexts();
+    recompui::show_context(recompui::get_config_context_id(), "");
 }
 
 // Called by the Setup_InitImpl patch to choose between the intro and the developer map select.
@@ -64,6 +75,11 @@ extern "C" void recomp_get_start_map_select(uint8_t* rdram, recomp_context* ctx)
 }
 
 bool recompui::try_autostart() {
+    if (open_mods_requested) {
+        open_mods_requested = false;
+        open_mods_menu();
+        return true;
+    }
     if (!autostart_requested || !recomp::is_rom_valid(supported_games[0].game_id)) {
         return false;
     }
@@ -122,9 +138,7 @@ public:
         );
         recompui::register_event(listener, "open_mods",
             [](const std::string &param, Rml::Event &event) {
-                recompui::set_config_tab(recompui::ConfigTab::Mods);
-                recompui::hide_all_contexts();
-                recompui::show_context(recompui::get_config_context_id(), "");
+                open_mods_menu();
             }
         );
         recompui::register_event(listener, "exit_game",

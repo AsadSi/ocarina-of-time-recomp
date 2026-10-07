@@ -730,13 +730,17 @@ int main(int argc, char** argv) {
     // Register the .rtz texture pack file format with the previous content type as its only allowed content type.
     recomp::mods::register_mod_container_type("rtz", std::vector{ texture_pack_content_type_id }, false);
 
-    // --start skips the launcher and boots the game straight away; --map-select boots into map select.
+    // --start skips the launcher and boots the game straight away; --map-select boots into map select;
+    // --mods opens the launcher on the Mods tab.
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--start") == 0) {
             recompui::request_autostart(false);
         }
         else if (strcmp(argv[i], "--map-select") == 0) {
             recompui::request_autostart(true);
+        }
+        else if (strcmp(argv[i], "--mods") == 0) {
+            recompui::request_open_mods();
         }
     }
 

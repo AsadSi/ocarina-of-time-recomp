@@ -58,6 +58,7 @@ namespace recompui {
     ContextId get_launcher_context_id();
     // Skip the launcher and start the game as soon as the UI would first show it.
     void request_autostart(bool map_select);
+    void request_open_mods();
     // Starts the game if an autostart was requested. Returns whether it did.
     bool try_autostart();
     ContextId get_config_context_id();
