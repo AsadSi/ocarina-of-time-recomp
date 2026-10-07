@@ -1,0 +1,21 @@
+[manifest]
+id = "oot_widescreen_hud"
+version = "1.0.0"
+display_name = "Widescreen HUD"
+description = """
+Moves the HUD to the edges of the screen when the aspect ratio is wider than 4:3: hearts, magic, rupees and \
+keys to the left, the minimap and buttons to the right. Built in."""
+short_description = "Anchors the HUD to the screen edges."
+authors = [ "asadsi" ]
+game_id = "oot"
+minimum_recomp_version = "1.2.2"
+dependencies = []
+optional_dependencies = []
+native_libraries = []
+
+[inputs]
+elf_path = "build/mod.elf"
+mod_filename = "oot_widescreen_hud"
+func_reference_syms_file = "../../OoTRecompSyms/oot.pal-1.1.syms.toml"
+data_reference_syms_files = [ "../../OoTRecompSyms/oot.pal-1.1.datasyms.toml" ]
+additional_files = []

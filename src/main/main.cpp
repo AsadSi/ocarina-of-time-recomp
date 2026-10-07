@@ -44,6 +44,7 @@
 #include "../../patches/input.h"
 #include "../../patches/sound.h"
 #include "../../patches/misc_funcs.h"
+#include "mods/oot_widescreen_hud.h"
 
 
 #ifdef _WIN32
@@ -651,6 +652,8 @@ int main(int argc, char** argv) {
     for (const auto& game : supported_games) {
         recomp::register_game(game);
     }
+
+    recomp::mods::register_embedded_mod("oot_widescreen_hud", { (const uint8_t*)(oot_widescreen_hud), std::size(oot_widescreen_hud)});
 
 
     REGISTER_FUNC(recomp_get_window_resolution);
