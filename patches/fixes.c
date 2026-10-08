@@ -65,3 +65,11 @@ RECOMP_PATCH void Object_ReloadAll(ObjectContext* objectCtx) {
         DmaMgr_RequestSync(objectCtx->slots[i].segment, gObjectTable[id].vromStart, size);
     }
 }
+
+// @recomp Patched to do nothing. The pause backdrop is the frame copied into the Z buffer; this filter then
+// rewrites its partially covered pixels on the CPU. Reading the copy back makes RT64 fall back to the
+// low-resolution 4:3 image in RDRAM, so the backdrop lost its resolution and widescreen sides. Untouched, it stays
+// the renderer's full-resolution copy, and the filter's edge smoothing is moot at that resolution.
+// Original: PreRender_ApplyFilters in src/code/PreRender.c.
+RECOMP_PATCH void PreRender_ApplyFilters(PreRender* this) {
+}
