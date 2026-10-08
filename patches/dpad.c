@@ -16,7 +16,8 @@
 #include "assets/textures/parameter_static/parameter_static.h"
 
 // D-pad items: four more item buttons, like Zelda64Recomp's D-pad mod. Pressing a direction on the pause
-// screen's item page assigns the item under the cursor to it; pressing it in play uses the item, under the
+// screen's item page assigns the item under the cursor to it (or clears it, if that item is already there);
+// pressing it in play uses the item, under the
 // same restrictions the game puts on C buttons. Each age has its own four, stored with the save file in
 // SaveInfo bytes the game never uses.
 //
@@ -265,10 +266,20 @@ void dpad_post_play_update(PlayState* play) {
     for (s32 dir = 0; dir < DPAD_DIRECTIONS; dir++) {
         if (CHECK_BTN_ALL(input->press.button, sDpadButtons[dir])) {
             s32 slot = pauseCtx->cursorSlot[PAUSE_ITEM];
+            u8* slots = DPAD_SLOTS(gSaveContext.save.linkAge);
 
             if (slot_usable_at_age(slot) && (pauseCtx->cursorItem[PAUSE_ITEM] != ITEM_SOLD_OUT)) {
-                DPAD_SLOTS(gSaveContext.save.linkAge)[dir] = slot + 1;
-                SFX_PLAY_CENTERED(NA_SE_SY_DECIDE);
+                // Pressing the direction an item is already on clears it; otherwise the item moves there from
+                // any other direction, as it would between C buttons.
+                u8 newValue = (slots[dir] == slot + 1) ? 0 : slot + 1;
+
+                for (s32 other = 0; other < DPAD_DIRECTIONS; other++) {
+                    if (slots[other] == slot + 1) {
+                        slots[other] = 0;
+                    }
+                }
+                slots[dir] = newValue;
+                SFX_PLAY_CENTERED(newValue != 0 ? NA_SE_SY_DECIDE : NA_SE_SY_CURSOR);
             } else {
                 SFX_PLAY_CENTERED(NA_SE_SY_ERROR);
             }
@@ -288,6 +299,57 @@ static u8 sDpadIconItems[DPAD_DIRECTIONS] = { ITEM_NONE, ITEM_NONE, ITEM_NONE, I
 static const s8 sDpadOffsets[DPAD_DIRECTIONS][2] = { { 0, -1 }, { 0, 1 }, { -1, 0 }, { 1, 0 } };
 
 s32 DmaMgr_RequestSync(void* ram, uintptr_t vrom, size_t size);
+Gfx* Gfx_TextureIA8(Gfx* displayListHead, void* texture, s16 textureWidth, s16 textureHeight, s16 rectLeft,
+                    s16 rectTop, s16 rectWidth, s16 rectHeight, u16 dsdx, u16 dtdy);
+
+// The ammo count at the bottom of an icon, as Interface_DrawAmmoCount in z_parameter.c draws a C button's.
+static Gfx* dpad_draw_ammo(Gfx* gfx, u8 item, s32 x, s32 y, s16 alpha) {
+    s32 ammo;
+    s32 full;
+
+    if ((item >= ITEM_BOW_FIRE) && (item <= ITEM_BOW_LIGHT)) {
+        item = ITEM_BOW;
+    }
+    switch (item) {
+        case ITEM_DEKU_STICK:
+            full = CUR_CAPACITY(UPG_DEKU_STICKS);
+            break;
+        case ITEM_DEKU_NUT:
+            full = CUR_CAPACITY(UPG_DEKU_NUTS);
+            break;
+        case ITEM_BOMB:
+            full = CUR_CAPACITY(UPG_BOMB_BAG);
+            break;
+        case ITEM_BOW:
+            full = CUR_CAPACITY(UPG_QUIVER);
+            break;
+        case ITEM_SLINGSHOT:
+            full = CUR_CAPACITY(UPG_BULLET_BAG);
+            break;
+        case ITEM_BOMBCHU:
+            full = 50;
+            break;
+        case ITEM_MAGIC_BEAN:
+            full = 15;
+            break;
+        default:
+            return gfx;
+    }
+    ammo = AMMO(item);
+
+    gDPPipeSync(gfx++);
+    if (ammo == 0) {
+        gDPSetPrimColor(gfx++, 0, 0, 100, 100, 100, alpha);
+    } else if (ammo == full) {
+        gDPSetPrimColor(gfx++, 0, 0, 120, 255, 0, alpha);
+    } else {
+        gDPSetPrimColor(gfx++, 0, 0, 255, 255, 255, alpha);
+    }
+    if (ammo >= 10) {
+        gfx = Gfx_TextureIA8(gfx, (u8*)gAmmoDigit0Tex + 8 * 8 * (ammo / 10), 8, 8, x, y, 8, 8, 1 << 10, 1 << 10);
+    }
+    return Gfx_TextureIA8(gfx, (u8*)gAmmoDigit0Tex + 8 * 8 * (ammo % 10), 8, 8, x + 6, y, 8, 8, 1 << 10, 1 << 10);
+}
 
 static void dpad_draw(PlayState* play) {
     InterfaceContext* interfaceCtx = &play->interfaceCtx;
@@ -307,6 +369,7 @@ static void dpad_draw(PlayState* play) {
     gEXPushCombineMode(OVERLAY_DISP++);
     gEXPushPrimColor(OVERLAY_DISP++);
     gEXPushScissor(OVERLAY_DISP++);
+    gEXPushEnvColor(OVERLAY_DISP++);
     gDPPipeSync(OVERLAY_DISP++);
     // The A button's view limits the scissor to the button; open it to the screen (which the HUD's scissor
     // alignment, if the Widescreen HUD set one, widens to the window).
@@ -350,6 +413,23 @@ static void dpad_draw(PlayState* play) {
     }
 
     gDPPipeSync(OVERLAY_DISP++);
+    gDPSetEnvColor(OVERLAY_DISP++, 0, 0, 0, 255);
+    gDPSetCombineLERP(OVERLAY_DISP++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE,
+                      ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+    for (s32 dir = 0; dir < DPAD_DIRECTIONS; dir++) {
+        u8 item = dpad_item(dir);
+
+        if (item < ITEM_NONE_FE) {
+            s32 x = DPAD_CENTER_X + sDpadOffsets[dir][0] * DPAD_ICON_SPACING - DPAD_ICON_SIZE / 2;
+            s32 y = DPAD_CENTER_Y + sDpadOffsets[dir][1] * DPAD_ICON_SPACING - DPAD_ICON_SIZE / 2;
+
+            OVERLAY_DISP = dpad_draw_ammo(OVERLAY_DISP, item, x + 1, y + DPAD_ICON_SIZE - 7,
+                                          dpad_item_enabled(play, item) ? alpha : MIN(alpha, 70));
+        }
+    }
+
+    gDPPipeSync(OVERLAY_DISP++);
+    gEXPopEnvColor(OVERLAY_DISP++);
     gEXPopScissor(OVERLAY_DISP++);
     gEXPopPrimColor(OVERLAY_DISP++);
     gEXPopCombineMode(OVERLAY_DISP++);
