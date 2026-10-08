@@ -1,0 +1,17 @@
+# Map select: Hyrule Field as child. Pause, move to the Lens of Truth (down 2), D-Up assigns it; unpause, D-Up puts the lens on.
+0
+4 A
+4.3
+13 START
+13.2
+16 Y=-1
+16.15
+17 Y=-1
+17.15
+19 DU
+19.2
+21 START
+21.2
+24 DU
+24.2
+30
