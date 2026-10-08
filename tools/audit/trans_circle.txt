@@ -1,0 +1,5 @@
+# Needs the test-transition mod (appdata-trans). Map select: A = Hyrule Field as child, which then opens with the circle.
+0
+4 A
+4.3
+14

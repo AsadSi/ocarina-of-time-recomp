@@ -1,0 +1,20 @@
+# Test aid for the audit routes, never shipped: install only in an audit app-data folder.
+[manifest]
+id = "oot_test_transition"
+version = "1.0.0"
+display_name = "Test: Transitions"
+description = "Audit aid. Every scene opens with the circle (child) or the wipe (adult)."
+short_description = "Audit aid: circle and wipe on every scene load."
+authors = [ "asadsi" ]
+game_id = "oot"
+minimum_recomp_version = "1.2.2"
+dependencies = []
+optional_dependencies = []
+native_libraries = []
+
+[inputs]
+elf_path = "build/mod.elf"
+mod_filename = "oot_test_transition"
+func_reference_syms_file = "../../../OoTRecompSyms/oot.pal-1.1.syms.toml"
+data_reference_syms_files = [ "../../../OoTRecompSyms/oot.pal-1.1.datasyms.toml" ]
+additional_files = []

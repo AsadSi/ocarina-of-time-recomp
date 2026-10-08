@@ -1,0 +1,7 @@
+# Needs the test-transition mod (appdata-trans). Map select: B (adult), A = Hyrule Field, which then opens with the wipe.
+0
+4 B
+4.2
+5 A
+5.3
+15

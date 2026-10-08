@@ -1,0 +1,21 @@
+# Map select: L L (entry 38) then D-up x4 = entry 34, Lon Lon storehouse 1. Walk back to the door and open it (A): the ranch exit closes with the circle.
+0
+4 L
+4.2
+4.6 L
+4.8
+5.2 DU
+5.4
+5.8 DU
+6.0
+6.4 DU
+6.6
+7.0 DU
+7.2
+7.8 A
+8.1
+15 Y=-1
+18.5
+18.7 A
+18.9
+26
