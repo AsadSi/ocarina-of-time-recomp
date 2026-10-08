@@ -4,6 +4,7 @@
 #include "controller.h"
 #include "gfx.h"
 #include "interface.h"
+#include "inventory.h"
 #include "item.h"
 #include "game_over.h"
 #include "message.h"
@@ -28,9 +29,12 @@
 // held. That query answers for the D-pad, and `heldItemButton` 4 then means the last D-pad direction used.
 
 #define DPAD_DIRECTIONS 4
-// Inventory slot + 1 per direction for each age; 0 is empty, as on a new save.
+// Inventory slot + 1 per direction for each age; 0 is empty, as on a new save. Boots and tunics are
+// DPAD_EQUIP | (equipment type << 2) | value, assigned from the equipment page.
 #define DPAD_SLOTS(age) ((u8*)&gSaveContext.save.info.unk_E8C[(age) * DPAD_DIRECTIONS])
 #define DPAD_BUTTON_INDEX 4
+#define DPAD_EQUIP 0x80
+#define DPAD_EQUIP_VALUE(type, value) (DPAD_EQUIP | ((type) << 2) | (value))
 
 static const u16 sDpadButtons[DPAD_DIRECTIONS] = { BTN_DUP, BTN_DDOWN, BTN_DLEFT, BTN_DRIGHT };
 static s32 sLastDpadDirection = 0;
@@ -49,11 +53,26 @@ static int slot_usable_at_age(s32 slot) {
            ((sSlotAgeReqs[slot] == AGE_REQ_NONE) || (sSlotAgeReqs[slot] == gSaveContext.save.linkAge));
 }
 
-// The item assigned to a direction, as a C button would hold it.
+static int dpad_is_equipment(u8 item) {
+    return (item >= ITEM_TUNIC_KOKIRI) && (item <= ITEM_BOOTS_HOVER);
+}
+
+// The item assigned to a direction, as a C button would hold it. Boots and tunics come back as their item
+// (ITEM_TUNIC_GORON etc.), for the icon; only adult Link wears the ones that can be assigned.
 static u8 dpad_item(s32 dir) {
-    s32 slot = DPAD_SLOTS(gSaveContext.save.linkAge)[dir] - 1;
+    u8 value = DPAD_SLOTS(gSaveContext.save.linkAge)[dir];
+    s32 slot = value - 1;
     u8 item;
 
+    if (value & DPAD_EQUIP) {
+        s32 type = (value >> 2) & 3;
+        s32 equipValue = value & 3;
+
+        if ((gSaveContext.save.linkAge != LINK_AGE_ADULT) || !CHECK_OWNED_EQUIP(type, equipValue - 1)) {
+            return ITEM_NONE;
+        }
+        return ((type == EQUIP_TYPE_TUNIC) ? ITEM_TUNIC_KOKIRI : ITEM_BOOTS_KOKIRI) + equipValue - 1;
+    }
     if (!slot_usable_at_age(slot)) {
         return ITEM_NONE;
     }
@@ -84,6 +103,9 @@ static int dpad_item_enabled(PlayState* play, u8 item) {
 
     if (item >= ITEM_NONE_FE) {
         return false;
+    }
+    if (dpad_is_equipment(item)) {
+        return !Player_InCsMode(play);
     }
     if ((player->stateFlags1 & PLAYER_STATE1_23) || (play->shootingGalleryStatus > 1) ||
         ((play->sceneId == SCENE_BOMBCHU_BOWLING_ALLEY) && Flags_GetSwitch(play, 0x38)) ||
@@ -152,7 +174,7 @@ static u8 dpad_item_on_button(PlayState* play) {
         if (CHECK_BTN_ALL(buttons, sDpadButtons[dir])) {
             u8 item = dpad_usable_item(play, dir);
 
-            if (item != ITEM_NONE) {
+            if ((item != ITEM_NONE) && !dpad_is_equipment(item)) {
                 sLastDpadDirection = dir;
                 return item;
             }
@@ -186,7 +208,7 @@ static int dpad_has_item_action(s32 itemAction) {
     for (s32 dir = 0; dir < DPAD_DIRECTIONS; dir++) {
         u8 item = dpad_item(dir);
 
-        if ((item < ITEM_NONE_FE) && (Player_ItemToItemAction(item) == itemAction)) {
+        if ((item < ITEM_NONE_FE) && !dpad_is_equipment(item) && (Player_ItemToItemAction(item) == itemAction)) {
             return true;
         }
     }
@@ -253,39 +275,86 @@ RECOMP_PATCH void Inventory_UpdateBottleItem(PlayState* play, u8 item, u8 button
     gSaveContext.buttonStatus[button] = BTN_ENABLED;
 }
 
-// Called once per frame after the play state updates: on the pause screen's item page, a D-pad press assigns
-// the item under the cursor, with the checks the page makes for C buttons.
+// Puts `value` on a direction: pressing the direction it is already on clears it; otherwise it moves there from any
+// other direction, as an item would between C buttons.
+static void dpad_assign(s32 dir, u8 value) {
+    u8* slots = DPAD_SLOTS(gSaveContext.save.linkAge);
+    u8 newValue = (slots[dir] == value) ? 0 : value;
+
+    for (s32 other = 0; other < DPAD_DIRECTIONS; other++) {
+        if (slots[other] == value) {
+            slots[other] = 0;
+        }
+    }
+    slots[dir] = newValue;
+    SFX_PLAY_CENTERED(newValue != 0 ? NA_SE_SY_DECIDE : NA_SE_SY_CURSOR);
+}
+
+// In play, a direction holding boots or a tunic puts them on, or back to Kokiri ones if they are already worn.
+static void dpad_use_equipment(PlayState* play) {
+    Input* input = &play->state.input[0];
+
+    for (s32 dir = 0; dir < DPAD_DIRECTIONS; dir++) {
+        u8 item = dpad_item(dir);
+
+        if (CHECK_BTN_ALL(input->press.button, sDpadButtons[dir]) && dpad_is_equipment(item) &&
+            dpad_item_enabled(play, item)) {
+            s32 type = (item <= ITEM_TUNIC_ZORA) ? EQUIP_TYPE_TUNIC : EQUIP_TYPE_BOOTS;
+            s32 value = item - ((type == EQUIP_TYPE_TUNIC) ? ITEM_TUNIC_KOKIRI : ITEM_BOOTS_KOKIRI) + 1;
+
+            if (CUR_EQUIP_VALUE(type) == value) {
+                value = (type == EQUIP_TYPE_TUNIC) ? EQUIP_VALUE_TUNIC_KOKIRI : EQUIP_VALUE_BOOTS_KOKIRI;
+            }
+            Inventory_ChangeEquipment(type, value);
+            Player_SetEquipmentData(play, GET_PLAYER(play));
+            SFX_PLAY_CENTERED(NA_SE_SY_DECIDE);
+            return;
+        }
+    }
+}
+
+// Called once per frame after the play state updates. In play, uses D-pad boots and tunics. On the pause screen, a
+// D-pad press assigns what is under the cursor: an item on the item page, with the checks the page makes for C
+// buttons, or (adult only) the Goron or Zora Tunic or the Iron or Hover Boots on the equipment page.
 void dpad_post_play_update(PlayState* play) {
     PauseContext* pauseCtx = &play->pauseCtx;
     Input* input = &play->state.input[0];
+    s32 dir;
 
+    if ((pauseCtx->state == PAUSE_STATE_OFF) && (pauseCtx->debugState == 0)) {
+        dpad_use_equipment(play);
+        return;
+    }
     if ((pauseCtx->debugState != 0) || (pauseCtx->state != PAUSE_STATE_MAIN) ||
-        (pauseCtx->mainState != PAUSE_MAIN_STATE_IDLE) || (pauseCtx->pageIndex != PAUSE_ITEM) ||
-        (pauseCtx->cursorSpecialPos != 0) || (pauseCtx->cursorItem[PAUSE_ITEM] == PAUSE_ITEM_NONE)) {
+        (pauseCtx->mainState != PAUSE_MAIN_STATE_IDLE) || (pauseCtx->cursorSpecialPos != 0)) {
+        return;
+    }
+    for (dir = 0; dir < DPAD_DIRECTIONS; dir++) {
+        if (CHECK_BTN_ALL(input->press.button, sDpadButtons[dir])) {
+            break;
+        }
+    }
+    if (dir == DPAD_DIRECTIONS) {
         return;
     }
 
-    for (s32 dir = 0; dir < DPAD_DIRECTIONS; dir++) {
-        if (CHECK_BTN_ALL(input->press.button, sDpadButtons[dir])) {
-            s32 slot = pauseCtx->cursorSlot[PAUSE_ITEM];
-            u8* slots = DPAD_SLOTS(gSaveContext.save.linkAge);
+    if ((pauseCtx->pageIndex == PAUSE_ITEM) && (pauseCtx->cursorItem[PAUSE_ITEM] != PAUSE_ITEM_NONE)) {
+        s32 slot = pauseCtx->cursorSlot[PAUSE_ITEM];
 
-            if (slot_usable_at_age(slot) && (pauseCtx->cursorItem[PAUSE_ITEM] != ITEM_SOLD_OUT)) {
-                // Pressing the direction an item is already on clears it; otherwise the item moves there from
-                // any other direction, as it would between C buttons.
-                u8 newValue = (slots[dir] == slot + 1) ? 0 : slot + 1;
+        if (slot_usable_at_age(slot) && (pauseCtx->cursorItem[PAUSE_ITEM] != ITEM_SOLD_OUT)) {
+            dpad_assign(dir, slot + 1);
+        } else {
+            SFX_PLAY_CENTERED(NA_SE_SY_ERROR);
+        }
+    } else if ((pauseCtx->pageIndex == PAUSE_EQUIP) && (pauseCtx->cursorItem[PAUSE_EQUIP] != PAUSE_ITEM_NONE)) {
+        s32 type = pauseCtx->cursorY[PAUSE_EQUIP];
+        s32 value = pauseCtx->cursorX[PAUSE_EQUIP];
 
-                for (s32 other = 0; other < DPAD_DIRECTIONS; other++) {
-                    if (slots[other] == slot + 1) {
-                        slots[other] = 0;
-                    }
-                }
-                slots[dir] = newValue;
-                SFX_PLAY_CENTERED(newValue != 0 ? NA_SE_SY_DECIDE : NA_SE_SY_CURSOR);
-            } else {
-                SFX_PLAY_CENTERED(NA_SE_SY_ERROR);
-            }
-            return;
+        if (((type == EQUIP_TYPE_TUNIC) || (type == EQUIP_TYPE_BOOTS)) && (value >= 2) &&
+            (gSaveContext.save.linkAge == LINK_AGE_ADULT)) {
+            dpad_assign(dir, DPAD_EQUIP_VALUE(type, value));
+        } else {
+            SFX_PLAY_CENTERED(NA_SE_SY_ERROR);
         }
     }
 }
