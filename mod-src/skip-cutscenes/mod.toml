@@ -1,0 +1,23 @@
+[manifest]
+id = "oot_skip_cutscenes"
+version = "1.0.0"
+display_name = "Skip Cutscenes"
+description = """
+Press START to skip the cutscenes that introduce an area the first time you visit it, Epona jumping a fence, \
+your first capture at the Gerudo Fortress, and Sheik's scenes at the Desert Colossus and in Kakariko. \
+You still get everything the cutscene would have given you. Cutscenes where an item is handed over \
+partway through can't be skipped."""
+short_description = "START skips area intros and some story cutscenes."
+authors = [ "asadsi" ]
+game_id = "oot"
+minimum_recomp_version = "1.2.2"
+dependencies = []
+optional_dependencies = []
+native_libraries = []
+
+[inputs]
+elf_path = "build/mod.elf"
+mod_filename = "oot_skip_cutscenes"
+func_reference_syms_file = "../../OoTRecompSyms/oot.pal-1.1.syms.toml"
+data_reference_syms_files = [ "../../OoTRecompSyms/oot.pal-1.1.datasyms.toml" ]
+additional_files = []

@@ -1,0 +1,17 @@
+# Needs Skip Cutscenes plus the test-kakariko mod (appdata-cs-kak). Map select: D-down = entry 2, B (adult), A: Sheik's Nocturne cutscene in burning Kakariko; START at 14s skips it. Then pause and flip to the quest page: Nocturne should be there.
+0
+4 DD
+4.2
+4.8 B
+5.0
+5.6 A
+5.9
+14 START
+14.2
+30 START
+30.2
+33 R
+33.2
+35 R
+35.2
+38

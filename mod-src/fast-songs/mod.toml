@@ -1,0 +1,21 @@
+[manifest]
+id = "oot_fast_songs"
+version = "1.0.0"
+display_name = "Fast Songs"
+description = """
+After you play a song on the ocarina, its effect starts right away instead of after the song is replayed. \
+Teachers still play new songs for you to learn."""
+short_description = "Songs take effect without the replay."
+authors = [ "asadsi" ]
+game_id = "oot"
+minimum_recomp_version = "1.2.2"
+dependencies = []
+optional_dependencies = []
+native_libraries = []
+
+[inputs]
+elf_path = "build/mod.elf"
+mod_filename = "oot_fast_songs"
+func_reference_syms_file = "../../OoTRecompSyms/oot.pal-1.1.syms.toml"
+data_reference_syms_files = [ "../../OoTRecompSyms/oot.pal-1.1.datasyms.toml" ]
+additional_files = []

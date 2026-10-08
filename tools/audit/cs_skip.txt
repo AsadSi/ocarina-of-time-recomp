@@ -1,0 +1,9 @@
+# Map select: D-down = entry 2, Kakariko Village (child). Its first-visit intro plays; START at 10.5s (during the pan) skips it with the Skip Cutscenes mod.
+0
+4 DD
+4.2
+5 A
+5.3
+10.5 START
+10.7
+24
