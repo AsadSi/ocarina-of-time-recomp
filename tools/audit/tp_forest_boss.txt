@@ -1,0 +1,27 @@
+# Map select: L x5, D-up x1 = entry 73, Forest Temple boss (Phantom Ganon) (adult). Walk, swing the sword, pause and unpause.
+0
+4.0 L
+4.2
+4.6 L
+4.8
+5.2 L
+5.4
+5.8 L
+6.0
+6.4 L
+6.6
+7.0 DU
+7.2
+7.6 B
+7.8
+8.2 A
+8.4
+17.8 Y=1
+20.8
+21.8 B
+22.0
+23.8 START
+24.0
+27.8 START
+28.0
+32.8

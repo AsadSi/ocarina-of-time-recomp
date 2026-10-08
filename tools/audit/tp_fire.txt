@@ -1,0 +1,31 @@
+# Map select: L x5, D-down x3 = entry 77, Fire Temple (adult). Walk, swing the sword, pause and unpause.
+0
+4.0 L
+4.2
+4.6 L
+4.8
+5.2 L
+5.4
+5.8 L
+6.0
+6.4 L
+6.6
+7.0 DD
+7.2
+7.6 DD
+7.8
+8.2 DD
+8.4
+8.8 B
+9.0
+9.4 A
+9.6
+19.0 Y=1
+22.0
+23.0 B
+23.2
+25.0 START
+25.2
+29.0 START
+29.2
+34.0

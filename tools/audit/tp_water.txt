@@ -1,0 +1,35 @@
+# Map select: L x5, D-down x5 = entry 79, Water Temple (adult). Walk, swing the sword, pause and unpause.
+0
+4.0 L
+4.2
+4.6 L
+4.8
+5.2 L
+5.4
+5.8 L
+6.0
+6.4 L
+6.6
+7.0 DD
+7.2
+7.6 DD
+7.8
+8.2 DD
+8.4
+8.8 DD
+9.0
+9.4 DD
+9.6
+10.0 B
+10.2
+10.6 A
+10.8
+20.2 Y=1
+23.2
+24.2 B
+24.4
+26.2 START
+26.4
+30.2 START
+30.4
+35.2

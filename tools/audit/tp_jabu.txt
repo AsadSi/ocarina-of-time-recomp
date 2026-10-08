@@ -1,0 +1,41 @@
+# Map select: L x4, D-down x10 = entry 70, Jabu-Jabu's Belly (child). Walk, swing the sword, pause and unpause.
+0
+4.0 L
+4.2
+4.6 L
+4.8
+5.2 L
+5.4
+5.8 L
+6.0
+6.4 DD
+6.6
+7.0 DD
+7.2
+7.6 DD
+7.8
+8.2 DD
+8.4
+8.8 DD
+9.0
+9.4 DD
+9.6
+10.0 DD
+10.2
+10.6 DD
+10.8
+11.2 DD
+11.4
+11.8 DD
+12.0
+12.4 A
+12.6
+22.0 Y=1
+25.0
+26.0 B
+26.2
+28.0 START
+28.2
+32.0 START
+32.2
+37.0

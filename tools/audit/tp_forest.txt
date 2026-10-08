@@ -1,0 +1,29 @@
+# Map select: L x5, D-up x2 = entry 72, Forest Temple (adult). Walk, swing the sword, pause and unpause.
+0
+4.0 L
+4.2
+4.6 L
+4.8
+5.2 L
+5.4
+5.8 L
+6.0
+6.4 L
+6.6
+7.0 DU
+7.2
+7.6 DU
+7.8
+8.2 B
+8.4
+8.8 A
+9.0
+18.4 Y=1
+21.4
+22.4 B
+22.6
+24.4 START
+24.6
+28.4 START
+28.6
+33.4

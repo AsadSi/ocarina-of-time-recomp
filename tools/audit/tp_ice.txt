@@ -1,0 +1,49 @@
+# Map select: L x5, D-down x12 = entry 86, Ice Cavern (adult). Walk, swing the sword, pause and unpause.
+0
+4.0 L
+4.2
+4.6 L
+4.8
+5.2 L
+5.4
+5.8 L
+6.0
+6.4 L
+6.6
+7.0 DD
+7.2
+7.6 DD
+7.8
+8.2 DD
+8.4
+8.8 DD
+9.0
+9.4 DD
+9.6
+10.0 DD
+10.2
+10.6 DD
+10.8
+11.2 DD
+11.4
+11.8 DD
+12.0
+12.4 DD
+12.6
+13.0 DD
+13.2
+13.6 DD
+13.8
+14.2 B
+14.4
+14.8 A
+15.0
+24.4 Y=1
+27.4
+28.4 B
+28.6
+30.4 START
+30.6
+34.4 START
+34.6
+39.4
