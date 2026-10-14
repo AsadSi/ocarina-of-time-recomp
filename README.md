@@ -153,3 +153,8 @@ Building is not required to play this project, as prebuilt binaries (which do no
 
 *Special thanks to [Blaze](https://runblaze.dev) for their support of this project. They provide high-performance Linux (AMD64 & ARM64) and Apple Silicon macOS runners for GitHub Actions, greatly reducing our automated build times.*
 
+## More projects
+
+- [Wind Waker HD: native port + mods](https://github.com/AsadSi/wwhd-recomp-mods): spooky sea events, Tetra's ship, online co-op
+- [Twilight Princess HD: Recompiled](https://github.com/AsadSi/twilight-princess-hd-recomp): native macOS port of the Wii U version
+- [Fixframe](https://github.com/AsadSi/fixframe-debugger): live render debugger for emulators and ports
