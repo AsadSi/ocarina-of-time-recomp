@@ -1,10 +1,6 @@
 # Ocarina of Time: Recompiled (unofficial fork of Zelda 64: Recompiled)
 Zelda 64: Recompiled is a project that uses [N64: Recompiled](https://github.com/Mr-Wiseguy/N64Recomp) to **statically recompile** Majora's Mask (and soon Ocarina of Time) into a native port with many new features, enhancements, and extensive mod support. This project uses [RT64](https://github.com/rt64/rt64) as the rendering engine to provide graphical enhancements.
 
-### [Check out the latest release here](https://github.com/Mr-Wiseguy/Zelda64Recomp/releases/latest).
-
-Join the [N64: Recompiled Community Discord](https://discord.gg/AWZThJ4dPf) to discuss this and other N64: Recompiled projects!
-
 ### **This repository and its releases do not contain game assets. The original game is required to build or run this project.**
 
 ### About this fork
@@ -12,8 +8,8 @@ Join the [N64: Recompiled Community Discord](https://discord.gg/AWZThJ4dPf) to d
 This is an **unofficial fork** of [Zelda 64: Recompiled](https://github.com/Zelda64Recomp/Zelda64Recomp) that adds
 an Ocarina of Time port (PAL 1.1) and a few mods. It is **not affiliated with or endorsed by** the Zelda 64:
 Recompiled team or Nintendo. **It was developed with AI assistance (Claude).** The upstream project has a
-no-generative-AI policy, so this work is kept in its own repository and is not offered upstream. Please do not
-report problems with it to the upstream project or its Discord.
+no-generative-AI policy, so this work is kept in its own repository and is not offered upstream. Please report problems
+here, not to the upstream project or its Discord. Credits: [CREDITS.md](CREDITS.md).
 
 Licence: GPL-3.0 as upstream (see COPYING). The game is required to build or run this; no game assets are included.
 
