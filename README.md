@@ -1,16 +1,21 @@
-# Zelda 64: Recompiled
+# Ocarina of Time: Recompiled (unofficial fork of Zelda 64: Recompiled)
 Zelda 64: Recompiled is a project that uses [N64: Recompiled](https://github.com/Mr-Wiseguy/N64Recomp) to **statically recompile** Majora's Mask (and soon Ocarina of Time) into a native port with many new features, enhancements, and extensive mod support. This project uses [RT64](https://github.com/rt64/rt64) as the rendering engine to provide graphical enhancements.
 
 ### [Check out the latest release here](https://github.com/Mr-Wiseguy/Zelda64Recomp/releases/latest).
 
 Join the [N64: Recompiled Community Discord](https://discord.gg/AWZThJ4dPf) to discuss this and other N64: Recompiled projects!
 
-[![Discord Invitation](https://discordapp.com/api/guilds/1374083583739826328/widget.png?style=banner2 'N64 Recomp')](https://discord.gg/AWZThJ4dPf)
-
 ### **This repository and its releases do not contain game assets. The original game is required to build or run this project.**
 
-### No-AI stance
-**The Zelda 64: Recompiled team has not, does not, and will not use generative AI tools in the development of this project for any purpose. As per the CONTRIBUTING.md file, contributions that use any GenAI tooling in any capacity are blanket banned. This also applies to the Ocarina of Time support that is being developed.**
+### About this fork
+
+This is an **unofficial fork** of [Zelda 64: Recompiled](https://github.com/Zelda64Recomp/Zelda64Recomp) that adds
+an Ocarina of Time port (PAL 1.1) and a few mods. It is **not affiliated with or endorsed by** the Zelda 64:
+Recompiled team or Nintendo. **It was developed with AI assistance (Claude).** The upstream project has a
+no-generative-AI policy, so this work is kept in its own repository and is not offered upstream. Please do not
+report problems with it to the upstream project or its Discord.
+
+Licence: GPL-3.0 as upstream (see COPYING). The game is required to build or run this; no game assets are included.
 
 ## Table of Contents
 * [System Requirements](#system-requirements)

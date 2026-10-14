@@ -1,3 +1,6 @@
+> Note: the text below is the upstream project's. This fork is separate from it and was developed with AI
+> assistance; see the README.
+
 AI must not be used to generate code for contributions to this project.
 
 "AI" in this case means a Large Language Model ("LLM"), such as ChatGPT, Claude, Copilot, Grok, etc.
